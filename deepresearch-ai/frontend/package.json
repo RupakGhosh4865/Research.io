@@ -1,0 +1,25 @@
+{
+  "name": "deepresearch-ai-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "latest",
+    "axios": "latest",
+    "eventsource-parser": "latest",
+    "lucide-react": "latest",
+    "next": "14",
+    "react": "18",
+    "react-dom": "18",
+    "react-query": "latest",
+    "shadcn-ui": "latest",
+    "stripe": "latest",
+    "tailwindcss": "latest",
+    "typescript": "latest"
+  }
+}

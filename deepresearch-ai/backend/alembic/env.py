@@ -9,10 +9,20 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = None
+import sys
+from os.path import dirname, abspath
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
+
+from app.database import Base
+import app.models.user
+import app.models.research
+
+target_metadata = Base.metadata
 
 # In a real setup, load DB URL from config or os.environ
 db_url = os.environ.get("DATABASE_URL", "postgresql://postgres:password@localhost:5432/deepresearch")
+if db_url.startswith("postgresql+asyncpg://"):
+    db_url = db_url.replace("postgresql+asyncpg://", "postgresql://")
 config.set_main_option("sqlalchemy.url", db_url)
 
 def run_migrations_offline() -> None:

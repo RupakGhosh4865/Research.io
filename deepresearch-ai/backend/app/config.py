@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List, Optional
 
 class Settings(BaseSettings):
-    OPENAI_API_KEY: str
+    GROQ_API_KEY: str
     LANGCHAIN_API_KEY: Optional[str] = None
     LANGCHAIN_PROJECT: str = "deepresearch-ai"
     LANGCHAIN_TRACING_V2: str = "true"
@@ -17,17 +17,22 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     REDIS_URL: str
     
-    CLERK_SECRET_KEY: str
-    CLERK_PUBLISHABLE_KEY: str
-    
-    STRIPE_SECRET_KEY: str
-    STRIPE_WEBHOOK_SECRET: str
-    
     APP_ENV: str = "development"
     CORS_ORIGINS: List[str] = ["http://localhost:3000"]
     SECRET_KEY: str
     
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    GOOGLE_CLIENT_ID: Optional[str] = None
+    GOOGLE_CLIENT_SECRET: Optional[str] = None
+    GOOGLE_REDIRECT_URL: str = "http://localhost:8001/api/v1/auth/google/callback"
+    
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    
+    # Prices (Placeholders for Stripe Price IDs)
+    STRIPE_STARTER_PRICE_ID: str = "price_starter"
+    STRIPE_PRO_PRICE_ID: str = "price_pro"
+    
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 @lru_cache()
 def get_settings():

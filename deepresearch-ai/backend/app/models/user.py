@@ -13,8 +13,8 @@ class User(Base):
     __tablename__ = "users"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=func.gen_random_uuid())
-    clerk_id = Column(String, unique=True, nullable=False)
     email = Column(String, unique=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
     credits_remaining = Column(Integer, default=3)
     plan = Column(SQLEnum(PlanType), default=PlanType.free)
     stripe_customer_id = Column(String, nullable=True)

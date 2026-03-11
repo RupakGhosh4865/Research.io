@@ -41,7 +41,7 @@ async def start_research(req: StartResearchReq, user: User = Depends(get_current
     
     try:
         celery_module = importlib.import_module("celery_worker")
-        celery_module.run_research_task.delay(session_id_str, req.topic, thread_id, str(user.id))
+        celery_module.run_research_task.delay(session_id_str, req.topic, thread_id, str(user.id), req.uploaded_doc_ids)
     except Exception as e:
         print("Error queuing celery task:", e)
 
@@ -110,7 +110,12 @@ async def get_session_status(session_id: str, user: User = Depends(get_current_u
     if not session or session.user_id != user.id:
         raise HTTPException(status_code=404, detail="Session not found")
         
+    from app.models.research import Report
+    report_res = await db.execute(select(Report.id).filter(Report.session_id == session_id))
+    report_id = report_res.scalars().first()
+        
     return {
         "status": session.status,
-        "plan_approved": session.plan_approved
+        "plan_approved": session.plan_approved,
+        "report_id": str(report_id) if report_id else None
     }

@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 import stripe
 from app.config import get_settings
 from app.middleware.auth import get_current_user
@@ -7,32 +6,34 @@ from app.models.user import User
 
 router = APIRouter()
 settings = get_settings()
-
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
-class CheckoutReq(BaseModel):
-    price_id: str
-    success_url: str
-    cancel_url: str
-
 @router.post("/create-checkout-session")
-async def create_checkout(req: CheckoutReq, user: User = Depends(get_current_user)):
+async def create_checkout_session(plan: str, user: User = Depends(get_current_user)):
+    if plan not in ["starter", "pro"]:
+        raise HTTPException(status_code=400, detail="Invalid plan")
+    
+    price_id = settings.STRIPE_STARTER_PRICE_ID if plan == "starter" else settings.STRIPE_PRO_PRICE_ID
+    
     try:
-        if not user.stripe_customer_id:
-            customer = stripe.Customer.create(email=user.email, metadata={"user_id": str(user.id)})
-            customer_id = customer.id
-            # NOTE: this should be updated in DB, skipping for brevity
-        else:
-            customer_id = user.stripe_customer_id
-            
-        session = stripe.checkout.Session.create(
-            mode="payment",
-            line_items=[{"price": req.price_id, "quantity": 1}],
-            metadata={"user_id": str(user.id), "price_id": req.price_id},
-            success_url=req.success_url,
-            cancel_url=req.cancel_url,
-            customer=customer_id
+        checkout_session = stripe.checkout.Session.create(
+            customer=user.stripe_customer_id,
+            customer_email=user.email if not user.stripe_customer_id else None,
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price': price_id,
+                    'quantity': 1,
+                },
+            ],
+            mode='subscription',
+            success_url=f"{settings.CORS_ORIGINS[0]}/dashboard?payment=success",
+            cancel_url=f"{settings.CORS_ORIGINS[0]}/pricing?payment=cancelled",
+            metadata={
+                "user_id": str(user.id),
+                "plan": plan
+            }
         )
-        return {"checkout_url": session.url}
+        return {"url": checkout_session.url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -2,7 +2,7 @@ from app.agents.state import ResearchState
 import redis.asyncio as aioredis
 from app.config import get_settings
 from app.utils.streaming import publish_agent_event
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from pydantic import BaseModel
 from typing import Literal
 
@@ -16,15 +16,17 @@ class CriticOutput(BaseModel):
     verdict: Literal["approve", "revise"]
 
 SYSTEM_PROMPT = """You are an expert review editor. 
-Evaluate the following research report on:
-- Factual accuracy
-- Citation quality and density
-- Depth of analysis
-- Structure and flow
-- Clarity
-- Completeness relative to the original topic
+Evaluate the following research report on factual accuracy, citation quality, depth, and structure.
 
-Provide a rigorous score from 0.0 to 10.0. Be extremely critical. If the score is below 7.0, issue a 'revise' verdict and list specific improvements."""
+Return your evaluation as a JSON object with:
+- quality_score: A float from 0.0 to 10.0.
+- strengths: A list of strings.
+- weaknesses: A list of strings.
+- specific_improvements: A list of strings.
+- verdict: Either "approve" or "revise".
+
+Be extremely critical. If the score is below 7.0, issue a 'revise' verdict.
+Return ONLY the JSON object."""
 
 async def critic_node(state: ResearchState) -> dict:
     redis_client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
@@ -38,8 +40,8 @@ async def critic_node(state: ResearchState) -> dict:
         redis_client=redis_client
     )
     
-    llm = ChatOpenAI(model="gpt-4o", api_key=settings.OPENAI_API_KEY)
-    structured_llm = llm.with_structured_output(CriticOutput)
+    llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=settings.GROQ_API_KEY)
+    structured_llm = llm.with_structured_output(CriticOutput, method="json_mode")
     
     draft = state.get("draft_report", "")
     

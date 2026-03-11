@@ -1,0 +1,18 @@
+'Log files:
+D:\Research.io\deepresearch-ai\frontend\tmp-npm-cache\_logs\2026-03-08T21_34_07_510Z-debug-0.log
+
+# npm resolution error report
+
+While resolving: deepresearch-ai-frontend@0.1.0
+Found: next@14.2.35
+node_modules/next
+  next@"14" from the root project
+
+Could not resolve dependency:
+peer next@"^15.2.8 || ^15.3.8 || ^15.4.10 || ^15.5.9 || ^15.6.0-0 || ^16.0.10 || ^16.1.0-0" from @clerk/nextjs@7.0.1
+node_modules/@clerk/nextjs
+  @clerk/nextjs@"latest" from the root project
+
+Fix the upstream dependency conflict, or retry
+this command with --force or --legacy-peer-deps
+to accept an incorrect (and potentially broken) dependency resolution.

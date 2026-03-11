@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 import os
 from app.config import get_settings
 from app.database import init_db
-from app.routers import users, webhooks, research
+from app.routers import users, webhooks, research, auth, documents, payments, reports
 
 settings = get_settings()
 
@@ -34,9 +34,17 @@ app.add_middleware(
 )
 
 # Routers
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["webhooks"])
 app.include_router(research.router, prefix="/api/v1/research", tags=["research"])
+app.include_router(documents.router, prefix="/api/v1/documents", tags=["documents"])
+app.include_router(payments.router, prefix="/api/v1/payments", tags=["payments"])
+app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to DeepResearch AI API", "status": "running"}
 
 @app.exception_handler(404)
 async def not_found_handler(request, exc):

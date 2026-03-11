@@ -8,11 +8,13 @@ class SearchResult(TypedDict):
     content: str
     source: str
 
-class ResearchPlan(TypedDict):
-    sub_questions: list[str]
-    search_queries: list[str]
-    approach: str
-    estimated_sections: list[str]
+from pydantic import BaseModel, Field
+
+class ResearchPlan(BaseModel):
+    sub_questions: list[str] = Field(description="5-7 distinct questions that cover the breadth and depth of the topic.")
+    search_queries: list[str] = Field(description="8-10 specific search queries tailored for a search engine.")
+    approach: str = Field(description="A short paragraph explaining the methodological approach.")
+    estimated_sections: list[str] = Field(description="5-7 section titles for the final comprehensive report.")
 
 class ResearchState(TypedDict):
     topic: str

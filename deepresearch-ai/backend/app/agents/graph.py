@@ -23,7 +23,6 @@ def build_graph():
     builder = StateGraph(ResearchState)
     
     builder.add_node("planner", planner_node)
-    builder.add_node("search_coordinator", search_coordinator_node)
     builder.add_node("search_agent", search_agent_node)
     builder.add_node("rag_retriever", rag_node)
     builder.add_node("writer", writer_node)
@@ -31,12 +30,7 @@ def build_graph():
     
     builder.add_edge(START, "planner")
     
-    # After planner, we would ideally interrupt, but for now we go to search_coordinator
-    # Actual interrupt needs checkpointer and graph.compile(interrupt_before=["search_coordinator"])
-    builder.add_edge("planner", "search_coordinator")
-    
-    # Conditional edge from coordinator to parallel search agents
-    builder.add_conditional_edges("search_coordinator", lambda state: ["search_agent"] * 3 if state.get("assigned_queries") else ["search_agent"])
+    builder.add_conditional_edges("planner", search_coordinator_node)
     
     # In LangGraph Send() API, the output of parallel nodes goes to the next nodes.
     # To simplify for the boilerplate:
@@ -52,7 +46,8 @@ async def run_graph(session_id: str, topic: str, thread_id: str, uploaded_doc_id
     from app.utils.streaming import publish_completed_event
     import redis.asyncio as aioredis
     
-    engine = create_async_engine(settings.DATABASE_URL)
+    db_url = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+    engine = create_async_engine(db_url)
     
     # Use AsyncPostgresSaver when implementing full persistence
     # async with AsyncPostgresSaver.from_conn_string(settings.DATABASE_URL) as checkpointer:
@@ -83,14 +78,54 @@ async def run_graph(session_id: str, topic: str, thread_id: str, uploaded_doc_id
     config = {"configurable": {"thread_id": thread_id}}
     
     try:
+        final_state = initial_state
         async for event in graph.astream(initial_state, config=config, stream_mode="values"):
-            pass # the nodes themselves will publish SSE
+            final_state = event
         
-        final_state = await graph.aget_state(config)
         # Save report logic here
+        from app.database import AsyncSessionLocal
+        from app.models.user import User
+        from app.models.research import ResearchSession, Report, SessionStatus
+        from sqlalchemy.future import select
+        
+        async with AsyncSessionLocal() as db:
+            # Update session status
+            res = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_id))
+            session = res.scalars().first()
+            if session:
+                session.status = SessionStatus.completed
+            
+            # Create or update report
+            report_content = final_state.get("final_report", "No report generated.")
+            report_title = f"Research Report: {topic}"
+            
+            res = await db.execute(select(Report).filter(Report.session_id == session_id))
+            report = res.scalars().first()
+            
+            if not report:
+                report = Report(
+                    session_id=session_id,
+                    title=report_title,
+                    content=report_content,
+                    citations=final_state.get("citations", []),
+                    quality_score=final_state.get("quality_score", 0.0),
+                    word_count=len(report_content.split()) if report_content else 0,
+                    revision_count=final_state.get("revision_count", 0)
+                )
+                db.add(report)
+            else:
+                report.title = report_title
+                report.content = report_content
+                report.citations = final_state.get("citations", [])
+                report.quality_score = final_state.get("quality_score", 0.0)
+                report.word_count = len(report_content.split()) if report_content else 0
+                report.revision_count = final_state.get("revision_count", 0)
+            
+            await db.commit()
+            report_id = str(report.id)
         
         redis_client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
-        await publish_completed_event(session_id, "mock_report_id", redis_client)
+        await publish_completed_event(session_id, report_id, redis_client)
         await redis_client.close()
         
     except Exception as e:

@@ -1,17 +1,13 @@
-from fastapi import APIRouter, Request, Depends, Header, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from svix.webhooks import Webhook, WebhookVerificationError
-import stripe
 from app.database import get_db
 from app.models.user import User
-from app.models.research import CreditTransaction
 from app.config import get_settings
 
 router = APIRouter()
 settings = get_settings()
-
-stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @router.post("/clerk")
 async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
@@ -42,13 +38,10 @@ async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
         email = data["email_addresses"][0]["email_address"]
         clerk_id = data["id"]
         
-        customer = stripe.Customer.create(email=email, metadata={"clerk_id": clerk_id})
-        
         new_user = User(
             clerk_id=clerk_id,
             email=email,
-            credits_remaining=3,
-            stripe_customer_id=customer.id
+            credits_remaining=3
         )
         db.add(new_user)
         await db.commit()
@@ -72,42 +65,41 @@ async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
 
     return {"success": True}
 
+import stripe
+
 @router.post("/stripe")
-async def stripe_webhook(request: Request, stripe_signature: str = Header(None), db: AsyncSession = Depends(get_db)):
+async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+    
+    if not sig_header:
+        raise HTTPException(status_code=400, detail="Missing stripe signature")
+        
     try:
         event = stripe.Webhook.construct_event(
-            payload, stripe_signature, settings.STRIPE_WEBHOOK_SECRET
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-        
-    event_type = event["type"]
-    data = event["data"]["object"]
     
-    if event_type == "checkout.session.completed":
-        customer_id = data.get("customer")
-        result = await db.execute(select(User).filter(User.stripe_customer_id == customer_id))
-        user = result.scalars().first()
-        if user:
-            user.credits_remaining += 10 # generic default implementation
-            user.plan = "pro"
-            
-            tx = CreditTransaction(
-                user_id=user.id,
-                amount=10,
-                type="stripe_purchase",
-                stripe_payment_intent_id=data.get("payment_intent")
-            )
-            db.add(tx)
-            await db.commit()
-            
-    elif event_type == "customer.subscription.deleted":
-        customer_id = data.get("customer")
-        result = await db.execute(select(User).filter(User.stripe_customer_id == customer_id))
-        user = result.scalars().first()
-        if user:
-            user.plan = "free"
-            await db.commit()
-
-    return {"received": True}
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        user_id = session.get('metadata', {}).get('user_id')
+        plan = session.get('metadata', {}).get('plan')
+        customer_id = session.get('customer')
+        
+        if user_id:
+            from app.models.user import PlanType
+            result = await db.execute(select(User).filter(User.id == user_id))
+            user = result.scalars().first()
+            if user:
+                user.stripe_customer_id = customer_id
+                user.plan = PlanType[plan]
+                # Add credits based on plan
+                if plan == 'starter':
+                    user.credits_remaining += 50
+                elif plan == 'pro':
+                    user.credits_remaining += 200
+                await db.commit()
+                
+    return {"status": "success"}

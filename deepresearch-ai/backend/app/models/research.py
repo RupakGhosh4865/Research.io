@@ -49,3 +49,14 @@ class CreditTransaction(Base):
     stripe_payment_intent_id = Column(String, nullable=True)
     research_session_id = Column(UUID(as_uuid=True), ForeignKey("research_sessions.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class Document(Base):
+    __tablename__ = "documents"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=func.gen_random_uuid())
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    filename = Column(String, nullable=False)
+    file_path = Column(String, nullable=False)
+    file_type = Column(String, nullable=True)
+    indexed = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

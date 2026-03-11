@@ -2,20 +2,31 @@ from app.agents.state import ResearchState
 import redis.asyncio as aioredis
 from app.config import get_settings
 from app.utils.streaming import publish_agent_event
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain_core.callbacks import AsyncCallbackHandler
 import re
 
 settings = get_settings()
 
-SYSTEM_PROMPT = """You are an expert academic researcher and technical writer.
-Your task is to write a comprehensive, well-structured research report based on the provided search results and context.
-Requirements:
-1. Include numbered citations [1], [2], etc., corresponding to the sources used.
-2. Structure the report precisely: Executive Summary, Introduction, the sections outlined in the research plan, Conclusion, and References.
-3. The report must be highly detailed (minimum 2000 words if possible given the context) and thoroughly analyze the topic.
-4. Cite every factual claim using the provided sources.
-5. If revising an existing draft, address the critic's specific feedback meticulously.
+SYSTEM_PROMPT = """You are a world-class academic researcher and professional technical writer at a top-tier research institution.
+Your task is to produce an exceptional, publication-quality research paper based on the provided search results and context.
+
+Writing Guidelines:
+1. **Academic Tone**: Use a formal, objective, and sophisticated academic tone. Avoid colloquialisms and maintain a professional voice throughout.
+2. **Structural Precision**: Follow a rigorous academic structure: 
+   - Abstract (Concise summary of findings)
+   - Introduction (Context, problem statement, and objectives)
+   - Methodology (How the research was synthesized)
+   - Detailed Analysis (Organized by the research plan sections)
+   - Discussion (Implications and synthesis of findings)
+   - Conclusion (Summary and future outlook)
+   - References (Formatted in a consistent style)
+3. **Deep Analysis**: Go beyond mere summary. Synthesize information from multiple sources to provide unique insights and a comprehensive overview.
+4. **Rigorous Citation**: Include numbered citations [1], [2], etc., for every factual claim, statistical data point, or unique concept derived from the sources.
+5. **Length and Depth**: Aim for extreme depth. The paper should be extensive (minimum 2500-3000 words) and thoroughly explore the topic's nuances.
+6. **Critic Integration**: If feedback is provided, address it with surgical precision to elevate the paper's quality to the highest possible standard.
+
+Your goal is to create a definitive resource on the topic that is indistinguishable from a peer-reviewed journal article.
 """
 
 class StreamingCallback(AsyncCallbackHandler):
@@ -51,16 +62,24 @@ async def writer_node(state: ResearchState) -> dict:
         redis_client=redis_client
     )
     
-    context_str = "\n\n".join([f"Source [{i+1}] {r['url']}:\n{r['content']}" for i, r in enumerate(state.get("search_results", []))])
+    # Truncate and limit results to avoid Groq TPM limits (12k tokens/min)
+    results = state.get("search_results", [])
+    # Limit to top 20 results and truncate each to ~300 words (1200 chars)
+    limited_results = results[:20]
+    
+    context_str = "\n\n".join([
+        f"Source [{i+1}] {r['url']}:\n{r['content'][:1200]}..." 
+        for i, r in enumerate(limited_results)
+    ])
     
     prompt = f"Topic: {state.get('topic')}\n\nContext:\n{context_str}"
     if rev > 0 and state.get("critic_feedback"):
         prompt += f"\n\nCritic Feedback to Address:\n{state.get('critic_feedback')}"
         
-    llm = ChatOpenAI(
-        model="gpt-4o", 
-        api_key=settings.OPENAI_API_KEY, 
-        streaming=True, 
+    llm = ChatGroq(
+        model="llama-3.3-70b-versatile",
+        api_key=settings.GROQ_API_KEY,
+        streaming=True,
         callbacks=[StreamingCallback(publish_agent_event, session_id, redis_client)]
     )
     

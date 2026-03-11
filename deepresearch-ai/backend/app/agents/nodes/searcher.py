@@ -39,8 +39,8 @@ async def search_agent_node(state: dict) -> dict:
             content=f"Searching: {query}",
             redis_client=redis_client
         )
-        # Call Tavily
-        results = await search_web(query, max_results=3)
+        # Call Tavily - limit to 2 results per query to save tokens
+        results = await search_web(query, max_results=2)
         all_results.extend(results)
         
     await redis_client.close()

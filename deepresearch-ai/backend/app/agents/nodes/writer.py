@@ -62,13 +62,13 @@ async def writer_node(state: ResearchState) -> dict:
         redis_client=redis_client
     )
     
-    # Truncate and limit results to avoid Groq TPM limits (12k tokens/min)
+    # Truncate and limit results to save tokens and speed up execution
     results = state.get("search_results", [])
-    # Limit to top 20 results and truncate each to ~300 words (1200 chars)
-    limited_results = results[:20]
+    # Limit to top 15 results and truncate each to ~200 words (800 chars)
+    limited_results = results[:15]
     
     context_str = "\n\n".join([
-        f"Source [{i+1}] {r['url']}:\n{r['content'][:1200]}..." 
+        f"Source [{i+1}] {r['url']}:\n{r['content'][:800]}..." 
         for i, r in enumerate(limited_results)
     ])
     

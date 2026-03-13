@@ -124,13 +124,23 @@ async def run_graph(session_id: str, topic: str, thread_id: str, uploaded_doc_id
             await db.commit()
             report_id = str(report.id)
         
-        redis_client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        redis_url = settings.REDIS_URL
+        if redis_url.startswith("rediss://") and "ssl_cert_reqs" not in redis_url:
+            separator = "&" if "?" in redis_url else "?"
+            redis_url = f"{redis_url}{separator}ssl_cert_reqs=none"
+            
+        redis_client = aioredis.from_url(redis_url, decode_responses=True)
         await publish_completed_event(session_id, report_id, redis_client)
         await redis_client.close()
         
     except Exception as e:
         print(f"Graph execution failed: {e}")
         from app.utils.streaming import publish_error_event
-        redis_client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        redis_url = settings.REDIS_URL
+        if redis_url.startswith("rediss://") and "ssl_cert_reqs" not in redis_url:
+            separator = "&" if "?" in redis_url else "?"
+            redis_url = f"{redis_url}{separator}ssl_cert_reqs=none"
+            
+        redis_client = aioredis.from_url(redis_url, decode_responses=True)
         await publish_error_event(session_id, str(e), redis_client)
         await redis_client.close()

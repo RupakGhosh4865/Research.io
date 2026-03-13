@@ -9,6 +9,11 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
 
+# Patch for Upstash/Render SSL requirements
+if redis_url.startswith("rediss://") and "ssl_cert_reqs" not in redis_url:
+    separator = "&" if "?" in redis_url else "?"
+    redis_url = f"{redis_url}{separator}ssl_cert_reqs=none"
+
 celery_app = Celery("research_worker", broker=redis_url, backend=redis_url)
 
 @celery_app.task(name="run_research_task")

@@ -44,3 +44,4 @@ asyncpg
 langchain-community
 razorpay==2.0.1
 svix
+stripe

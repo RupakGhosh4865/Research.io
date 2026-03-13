@@ -15,7 +15,8 @@ async def get_me(user: User = Depends(get_current_user)):
         "id": user.id,
         "email": user.email,
         "credits_remaining": user.credits_remaining,
-        "plan": user.plan
+        "plan": user.plan,
+        "is_admin": user.is_admin
     }
 
 @router.get("/me/credits")

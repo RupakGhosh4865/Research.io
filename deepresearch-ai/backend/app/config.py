@@ -4,6 +4,7 @@ from typing import List, Optional
 
 class Settings(BaseSettings):
     GROQ_API_KEY: str
+    ADMIN_EMAIL: str = "rupak@research.io"  # Default admin
     LANGCHAIN_API_KEY: Optional[str] = None
     LANGCHAIN_PROJECT: str = "deepresearch-ai"
     LANGCHAIN_TRACING_V2: str = "true"
@@ -23,14 +24,16 @@ class Settings(BaseSettings):
     
     GOOGLE_CLIENT_ID: Optional[str] = None
     GOOGLE_CLIENT_SECRET: Optional[str] = None
-    GOOGLE_REDIRECT_URL: str = "http://localhost:8001/api/v1/auth/google/callback"
+    GOOGLE_REDIRECT_URL: str = "http://localhost:8002/api/v1/auth/google/callback"
     
-    STRIPE_SECRET_KEY: Optional[str] = None
-    STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    RAZORPAY_KEY_ID: Optional[str] = None
+    RAZORPAY_KEY_SECRET: Optional[str] = None
+    RAZORPAY_WEBHOOK_SECRET: Optional[str] = None
     
-    # Prices (Placeholders for Stripe Price IDs)
-    STRIPE_STARTER_PRICE_ID: str = "price_starter"
-    STRIPE_PRO_PRICE_ID: str = "price_pro"
+    # Prices in INR (Paise)
+    RAZORPAY_TEST_AMOUNT: int = 100        # ₹1.00
+    RAZORPAY_STARTER_AMOUNT: int = 19900   # ₹199.00
+    RAZORPAY_PRO_AMOUNT: int = 49900       # ₹499.00
     
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

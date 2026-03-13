@@ -3,7 +3,7 @@ import { useAuthContext } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, FileText, History, Settings, LogOut, User, CreditCard, Cpu } from 'lucide-react'
+import { LayoutDashboard, FileText, History, Settings, LogOut, User, CreditCard, Cpu, Shield } from 'lucide-react'
 import CreditBadge from '@/components/shared/CreditBadge'
 import SpiderBackground from '@/components/ui/SpiderBackground'
 import { usePathname } from 'next/navigation'
@@ -72,11 +72,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         <nav className="flex-1 px-4 space-y-2 mt-4">
-          <NavLink href="/dashboard" icon={LayoutDashboard} label="Terminal Index" />
-          <NavLink href="/research/new" icon={FileText} label="Initiate Probe" />
-          <NavLink href="/history" icon={History} label="Archive Data" />
-          <NavLink href="/pricing" icon={CreditCard} label="Resource Node" />
-          <NavLink href="/settings" icon={Settings} label="System Config" />
+          <NavLink href="/dashboard" icon={LayoutDashboard} label="Home" />
+          <NavLink href="/research/new" icon={FileText} label="New Research" />
+          <NavLink href="/history" icon={History} label="Your Research" />
+          <NavLink href="/pricing" icon={CreditCard} label="Pricing" />
+          {user.is_admin && <NavLink href="/admin" icon={Shield} label="Admin" />}
+          <NavLink href="/settings" icon={Settings} label="Settings" />
         </nav>
         <div className="p-4 border-t border-[#ffffff0a] space-y-4">
           <CreditBadge />
@@ -87,7 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
               <div className="flex flex-col min-w-0">
                 <span className="text-sm font-bold truncate text-white">{user.email.split('@')[0]}</span>
-                <span className="text-[10px] text-gray-500 truncate uppercase tracking-tighter">{user.plan} NODE</span>
+                <span className="text-[10px] text-gray-500 truncate uppercase tracking-tighter">{user.plan} PLAN</span>
               </div>
             </div>
             <button
@@ -95,7 +96,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className="group flex items-center gap-3 w-full text-left px-4 py-2 rounded-xl text-sm text-red-400/70 hover:text-red-400 hover:bg-red-400/10 transition-all duration-300"
             >
               <LogOut size={16} className="group-hover:rotate-12 transition-transform" />
-              <span className="font-medium">TERMINATE SESSION</span>
+              <span className="font-medium">LOGOUT</span>
             </button>
           </div>
         </div>

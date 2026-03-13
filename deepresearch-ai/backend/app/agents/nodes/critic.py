@@ -44,11 +44,28 @@ async def critic_node(state: ResearchState) -> dict:
     structured_llm = llm.with_structured_output(CriticOutput, method="json_mode")
     
     draft = state.get("draft_report", "")
-    
-    evaluation: CriticOutput = await structured_llm.ainvoke([
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": f"Topic: {state.get('topic')}\n\nReport:\n{draft}"}
-    ])
+    # Truncate draft for critic if it's very long (concentrate on quality over full volume)
+    critic_prompt_draft = draft[:8000] if len(draft) > 8000 else draft
+
+    # Simple retry logic for 429s
+    attempts = 0
+    max_attempts = 3
+    evaluation = None
+
+    while attempts < max_attempts:
+        try:
+            evaluation = await structured_llm.ainvoke([
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": f"Topic: {state.get('topic')}\n\nReport Draft (Excerpt):\n{critic_prompt_draft}"}
+            ])
+            break
+        except Exception as e:
+            attempts += 1
+            if "429" in str(e) and attempts < max_attempts:
+                import asyncio
+                await asyncio.sleep(attempts * 5)
+            else:
+                raise e
     
     score = evaluation.quality_score
     approved = evaluation.verdict == "approve"

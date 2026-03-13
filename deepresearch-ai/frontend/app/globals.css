@@ -13,6 +13,21 @@
   --color-brand-accent: #8b5cf6;
   --color-brand-bg: #03050a;
   --color-brand-card: rgba(8, 11, 20, 0.7);
+
+  --animate-scan-fast: scan-fast 2s linear infinite;
+  --animate-pulse-slow: pulse-slow 3s ease-in-out infinite;
+  --animate-spin-slow: spin 10s linear infinite;
+}
+
+@keyframes scan-fast {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 0.5; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.8; }
 }
 
 @keyframes glow {

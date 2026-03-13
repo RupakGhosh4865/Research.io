@@ -62,15 +62,17 @@ async def writer_node(state: ResearchState) -> dict:
         redis_client=redis_client
     )
     
-    # Truncate and limit results to save tokens and speed up execution
+    # Truncate and limit results to save tokens and avoid 429 errors
     results = state.get("search_results", [])
-    # Limit to top 15 results and truncate each to ~200 words (800 chars)
-    limited_results = results[:15]
+    # Limit to top 10 results and truncate each to ~1500 chars (600-800 tokens approx)
+    limited_results = results[:10]
     
-    context_str = "\n\n".join([
-        f"Source [{i+1}] {r['url']} (Title: {r.get('title', 'N/A')}):\n{r['content'][:800]}..." 
-        for i, r in enumerate(limited_results)
-    ])
+    context_sections = []
+    for i, r in enumerate(limited_results):
+        content = r['content'][:1500]
+        context_sections.append(f"Source [{i+1}] {r['url']}\nTitle: {r.get('title', 'N/A')}\nContent: {content}...")
+    
+    context_str = "\n\n".join(context_sections)
     
     prompt = f"Topic: {state.get('topic')}\n\nContext:\n{context_str}"
     if rev > 0 and state.get("critic_feedback"):
@@ -83,12 +85,28 @@ async def writer_node(state: ResearchState) -> dict:
         callbacks=[StreamingCallback(publish_agent_event, session_id, redis_client)]
     )
     
-    response = await llm.ainvoke([
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": prompt}
-    ])
+    # Simple retry logic for 429s (Groq specific)
+    attempts = 0
+    max_attempts = 3
+    report_text = ""
     
-    report_text = response.content
+    while attempts < max_attempts:
+        try:
+            response = await llm.ainvoke([
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": prompt}
+            ])
+            report_text = response.content
+            break
+        except Exception as e:
+            attempts += 1
+            if "429" in str(e) and attempts < max_attempts:
+                import asyncio
+                wait_time = attempts * 5
+                await publish_agent_event(session_id, "writer", "thinking", f"Rate limited. Retrying in {wait_time}s...", redis_client)
+                await asyncio.sleep(wait_time)
+            else:
+                raise e
     
     # Correctly collect citations from the used results
     citations = [

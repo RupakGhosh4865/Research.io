@@ -35,7 +35,8 @@ async def signup(user_data: UserSignup, db: AsyncSession = Depends(get_db)):
     new_user = User(
         email=user_data.email,
         hashed_password=get_password_hash(user_data.password),
-        credits_remaining=10 # Bonus credits for testing
+        credits_remaining=5, # Default credits for free plan
+        is_admin=(user_data.email == settings.ADMIN_EMAIL)
     )
     db.add(new_user)
     await db.commit()
@@ -50,7 +51,8 @@ async def signup(user_data: UserSignup, db: AsyncSession = Depends(get_db)):
             "id": str(new_user.id),
             "email": new_user.email,
             "credits_remaining": new_user.credits_remaining,
-            "plan": new_user.plan
+            "plan": new_user.plan,
+            "is_admin": new_user.is_admin
         }
     }
 
@@ -71,7 +73,8 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
             "id": str(user.id),
             "email": user.email,
             "credits_remaining": user.credits_remaining,
-            "plan": user.plan
+            "plan": user.plan,
+            "is_admin": user.is_admin
         }
     }
 
@@ -130,7 +133,8 @@ async def google_callback(code: str, db: AsyncSession = Depends(get_db)):
             user = User(
                 email=email,
                 hashed_password=get_password_hash(str(uuid.uuid4())), # Placeholder
-                credits_remaining=10
+                credits_remaining=5,
+                is_admin=(email == settings.ADMIN_EMAIL)
             )
             db.add(user)
             await db.commit()

@@ -1,26 +1,10 @@
 "use client"
 import Link from 'next/link'
 import { ArrowRight, Bot, Search, Zap, Shield, BarChart3, ChevronRight, Cpu, Activity, Globe, ZapOff } from 'lucide-react'
-import { motion } from 'framer-motion'
 import SpiderBackground from '@/components/ui/SpiderBackground'
 import FuturisticCard from '@/components/ui/FuturisticCard'
 
 export default function LandingPage() {
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15
-      }
-    }
-  }
-
-  const item = {
-    hidden: { opacity: 0, y: 30 },
-    show: { opacity: 1, y: 0 }
-  }
-
   return (
     <div className="min-h-screen bg-[#03050a] text-white selection:bg-[#00d4ff]/30 overflow-x-hidden">
       {/* Infrastructure Layer */}
@@ -54,14 +38,9 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative pt-48 pb-32 px-6 max-w-7xl mx-auto text-center z-10">
-        <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-8"
-        >
+        <div className="space-y-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00d4ff]/10 border border-[#00d4ff]/30 text-[#00d4ff] font-orbitron text-[10px] tracking-[0.4em] mb-4">
-            <Activity size={14} className="animate-pulse" />
+            <Activity size={14} />
             AGENTIC_COLLECTIVE_ONLINE
           </div>
           <h1 className="text-6xl md:text-[120px] font-black font-orbitron leading-none tracking-tighter text-glow uppercase">
@@ -80,15 +59,10 @@ export default function LandingPage() {
               <Zap size={16} className="text-[#ff6b35]" /> VIEW_NEURAL_LIVE
             </Link>
           </div>
-        </motion.div>
+        </div>
 
         {/* Live Terminal Preview */}
-        <motion.div 
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 1 }}
-            className="mt-32 relative max-w-5xl mx-auto"
-        >
+        <div className="mt-32 relative max-w-5xl mx-auto">
             <div className="absolute -inset-1 bg-gradient-to-r from-[#00d4ff]/20 via-[#8b5cf6]/20 to-[#ff6b35]/20 rounded-3xl blur-2xl -z-10" />
             <FuturisticCard glowColor="#00d4ff">
                 <div className="flex items-center gap-2 mb-6 bg-[#03050a] rounded-full px-4 py-2 w-fit border border-white/5 shadow-inner">
@@ -117,11 +91,11 @@ export default function LandingPage() {
                     <div className="flex gap-4 items-center relative">
                         <span className="text-green-400 font-bold shrink-0">[WRITER]</span>
                         <div className="h-px flex-1 bg-white/5" />
-                        <span className="text-white font-bold animate-pulse">Drafting Competitive Analysis... <span className="inline-block w-2 h-4 bg-[#00d4ff]" /></span>
+                        <span className="text-white font-bold">Drafting Competitive Analysis... <span className="inline-block w-2 h-4 bg-[#00d4ff]" /></span>
                     </div>
                 </div>
             </FuturisticCard>
-        </motion.div>
+        </div>
       </section>
 
       {/* Grid Specs */}
@@ -131,13 +105,8 @@ export default function LandingPage() {
           <h3 className="text-4xl md:text-6xl font-black font-orbitron uppercase tracking-tighter">Operational <span className="text-[#00d4ff]">Vantage</span></h3>
         </div>
         
-        <motion.div 
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            className="grid grid-cols-1 md:grid-cols-3 gap-12"
-        >
-          <motion.div variants={item}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div>
               <FuturisticCard glowColor="#00d4ff" className="text-center group">
                 <div className="mb-8 p-4 bg-[#00d4ff]/10 rounded-2xl border border-[#00d4ff]/20 w-fit mx-auto group-hover:scale-110 transition-transform">
                     <Search className="text-[#00d4ff]" size={32} />
@@ -147,9 +116,9 @@ export default function LandingPage() {
                   Agents autonomously determine keywords, execute deep scraping, and synthesize disparate data nodes in real-time.
                 </p>
               </FuturisticCard>
-          </motion.div>
+          </div>
 
-          <motion.div variants={item}>
+          <div>
               <FuturisticCard glowColor="#ff6b35" className="text-center group">
                 <div className="mb-8 p-4 bg-[#ff6b35]/10 rounded-2xl border border-[#ff6b35]/20 w-fit mx-auto group-hover:scale-110 transition-transform">
                     <Shield className="text-[#ff6b35]" size={32} />
@@ -159,9 +128,9 @@ export default function LandingPage() {
                   Every claim is architected with dynamic citations. Zero hallucinations. Only verified, cross-linked intelligence.
                 </p>
               </FuturisticCard>
-          </motion.div>
+          </div>
 
-          <motion.div variants={item}>
+          <div>
               <FuturisticCard glowColor="#8b5cf6" className="text-center group">
                 <div className="mb-8 p-4 bg-[#8b5cf6]/10 rounded-2xl border border-[#8b5cf6]/20 w-fit mx-auto group-hover:scale-110 transition-transform">
                     <Zap className="text-[#8b5cf6]" size={32} />
@@ -171,17 +140,13 @@ export default function LandingPage() {
                   Minimize human latency. Transform 40 hours of intern-grade research into 4 minutes of elite executive intelligence.
                 </p>
               </FuturisticCard>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* CTA Layer */}
       <section className="py-40 px-6 relative z-10">
-        <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            className="max-w-5xl mx-auto"
-        >
+        <div className="max-w-5xl mx-auto">
             <FuturisticCard glowColor="#00d4ff" className="text-center py-24 space-y-12">
                 <div className="space-y-4">
                     <h2 className="text-4xl md:text-6xl font-black font-orbitron uppercase tracking-tighter">Ready to Deploy <span className="text-[#00d4ff]">Pipeline?</span></h2>
@@ -191,7 +156,7 @@ export default function LandingPage() {
                     INITIALIZE_ACCOUNT
                 </Link>
             </FuturisticCard>
-        </motion.div>
+        </div>
       </section>
 
       <footer className="py-12 border-t border-white/5 text-center relative z-10">

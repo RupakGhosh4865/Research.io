@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { LayoutDashboard, FileText, History, Settings, LogOut, User, CreditCard, Cpu } from 'lucide-react'
 import CreditBadge from '@/components/shared/CreditBadge'
 import SpiderBackground from '@/components/ui/SpiderBackground'
-import { motion } from 'framer-motion'
 import { usePathname } from 'next/navigation'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -23,7 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (isLoading) return (
     <div className="h-screen bg-[#03050a] flex flex-col items-center justify-center gap-4">
       <div className="w-12 h-12 border-4 border-[#00d4ff]/20 border-t-[#00d4ff] rounded-full animate-spin" />
-      <span className="font-orbitron text-sm tracking-widest text-[#00d4ff] animate-pulse">SYNCHRONIZING...</span>
+      <span className="font-orbitron text-sm tracking-widest text-[#00d4ff]">SYNCHRONIZING...</span>
     </div>
   )
   if (!user) return null
@@ -40,10 +39,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }`}
       >
         {isActive && (
-          <motion.div 
-            layoutId="nav-active"
-            className="absolute left-0 w-1 h-2/3 bg-[#00d4ff] rounded-r-full"
-          />
+          <div className="absolute left-0 w-1 h-2/3 bg-[#00d4ff] rounded-r-full" />
         )}
         <Icon size={20} className={isActive ? 'text-[#00d4ff]' : 'group-hover:text-[#00d4ff] transition-colors'} />
         <span className={`font-outfit font-medium ${isActive ? 'text-white' : ''}`}>{label}</span>

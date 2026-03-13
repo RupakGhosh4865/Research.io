@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getReport } from '@/lib/api'
 import { Download, Share2, FileText, Globe, Link as LinkIcon, Lock, Cpu, Loader2 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import FuturisticCard from '@/components/ui/FuturisticCard'
 
 export default function ReportViewer({ reportId }: { reportId?: string }) {
@@ -30,7 +29,7 @@ export default function ReportViewer({ reportId }: { reportId?: string }) {
         </div>
         <FuturisticCard glowColor="#ff6b35" className="flex-1">
             <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
-                <div className="p-4 bg-[#ff6b35]/10 rounded-full border border-[#ff6b35]/20 animate-pulse">
+                <div className="p-4 bg-[#ff6b35]/10 rounded-full border border-[#ff6b35]/20">
                     <Cpu size={32} className="text-[#ff6b35]" />
                 </div>
                 <div className="space-y-1">
@@ -46,14 +45,10 @@ export default function ReportViewer({ reportId }: { reportId?: string }) {
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center gap-4"
-        >
+        <div className="flex flex-col items-center gap-4">
             <Loader2 size={40} className="text-[#00d4ff] animate-spin" />
-            <span className="font-orbitron text-[10px] tracking-[0.5em] text-[#00d4ff] animate-pulse">DECRYPTING DATA CORE...</span>
-        </motion.div>
+            <span className="font-orbitron text-[10px] tracking-[0.5em] text-[#00d4ff]">DECRYPTING DATA CORE...</span>
+        </div>
       </div>
     )
   }
@@ -104,11 +99,7 @@ export default function ReportViewer({ reportId }: { reportId?: string }) {
       <FuturisticCard glowColor="#00d4ff" className="flex-1 overflow-hidden h-[calc(100vh-250px)]">
         <div className="h-full overflow-y-auto custom-scrollbar p-6">
             {report ? (
-            <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="max-w-4xl mx-auto space-y-12"
-            >
+            <div className="max-w-4xl mx-auto space-y-12">
                 <div className="space-y-4 border-b border-white/5 pb-8">
                     <div className="p-2 w-fit bg-[#00d4ff]/10 rounded-lg border border-[#00d4ff]/20">
                         <FileText size={20} className="text-[#00d4ff]" />
@@ -156,10 +147,10 @@ export default function ReportViewer({ reportId }: { reportId?: string }) {
                     </div>
                 </div>
                 )}
-            </motion.div>
+            </div>
             ) : (
             <div className="h-full flex items-center justify-center">
-                <p className="text-gray-400 font-orbitron animate-pulse">UNABLE TO LOAD DATA NODE.</p>
+                <p className="text-gray-400 font-orbitron">UNABLE TO LOAD DATA NODE.</p>
             </div>
             )}
         </div>

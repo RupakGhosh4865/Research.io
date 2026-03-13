@@ -68,7 +68,7 @@ async def writer_node(state: ResearchState) -> dict:
     limited_results = results[:15]
     
     context_str = "\n\n".join([
-        f"Source [{i+1}] {r['url']}:\n{r['content'][:800]}..." 
+        f"Source [{i+1}] {r['url']} (Title: {r.get('title', 'N/A')}):\n{r['content'][:800]}..." 
         for i, r in enumerate(limited_results)
     ])
     
@@ -90,7 +90,11 @@ async def writer_node(state: ResearchState) -> dict:
     
     report_text = response.content
     
-    citations = []
+    # Correctly collect citations from the used results
+    citations = [
+        {"url": r["url"], "title": r.get("title", r["url"])}
+        for r in limited_results
+    ]
     
     await publish_agent_event(
         session_id=session_id,

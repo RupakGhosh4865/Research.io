@@ -1,6 +1,4 @@
-"use client"
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+import React from 'react'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -15,36 +13,10 @@ interface FuturisticCardProps {
 }
 
 export default function FuturisticCard({ children, className, glowColor = '#00d4ff' }: FuturisticCardProps) {
-  const [rotate, setRotate] = useState({ x: 0, y: 0 })
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const card = e.currentTarget
-    const rect = card.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const centerX = rect.width / 2
-    const centerY = rect.height / 2
-    const rotateX = (y - centerY) / 20
-    const rotateY = (centerX - x) / 20
-
-    setRotate({ x: rotateX, y: rotateY })
-  }
-
-  const handleMouseLeave = () => {
-    setRotate({ x: 0, y: 0 })
-  }
-
   return (
-    <motion.div
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      animate={{
-        rotateX: rotate.x,
-        rotateY: rotate.y,
-      }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+    <div
       className={cn(
-        "relative group perspective-1000",
+        "relative group",
         className
       )}
     >
@@ -63,15 +35,12 @@ export default function FuturisticCard({ children, className, glowColor = '#00d4
         <div className="relative bg-[#080B14]/80 backdrop-blur-xl p-6 rounded-xl flex-1 flex flex-col min-h-0">
           {children}
           
-          {/* Animated scanning line on hover */}
-          <motion.div 
-            initial={{ top: '-100%' }}
-            whileHover={{ top: '100%' }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-            className="absolute left-0 w-full h-px bg-gradient-to-r from-transparent via-[#00d4ff]/30 to-transparent z-10"
+          {/* Static scanning line on hover replaced with transition */}
+          <div 
+            className="absolute left-0 w-full h-px bg-gradient-to-r from-transparent via-[#00d4ff]/30 to-transparent z-10 top-0 opacity-0 group-hover:opacity-100 group-hover:top-full transition-all duration-[1500ms] ease-linear"
           />
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }

@@ -1,17 +1,12 @@
 "use client"
 import ResearchForm from '@/components/research/ResearchForm'
-import { motion } from 'framer-motion'
 import { ChevronRight, Cpu } from 'lucide-react'
 import Link from 'next/link'
 
 export default function NewResearchPage() {
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-12 pb-20">
-      <motion.div 
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="space-y-4"
-      >
+      <div className="space-y-4">
         <div className="flex items-center gap-2 text-gray-500 font-orbitron text-[10px] tracking-[0.2em]">
           <Link href="/dashboard" className="hover:text-[#00d4ff] transition-colors">TERMINAL</Link>
           <ChevronRight size={10} />
@@ -27,15 +22,11 @@ export default function NewResearchPage() {
                 <p className="text-gray-500 font-medium text-sm">Configure your search parameters and neural constraints.</p>
             </div>
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
+      <div>
         <ResearchForm />
-      </motion.div>
+      </div>
     </div>
   )
 }

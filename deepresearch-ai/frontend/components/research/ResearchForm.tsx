@@ -3,7 +3,6 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { startResearch, setAuthToken, uploadDocument } from '@/lib/api'
 import { useAuthContext } from '@/context/AuthContext'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Upload, X, Zap, Loader2, FileText, ChevronRight, Search } from 'lucide-react'
 import FuturisticCard from '@/components/ui/FuturisticCard'
 
@@ -108,42 +107,34 @@ export default function ResearchForm() {
               </div>
             </div>
             
-            <AnimatePresence>
-              {selectedFiles.length > 0 && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {selectedFiles.map((file, i) => (
-                    <motion.div 
-                      key={i} 
-                      layout
-                      className="flex items-center justify-between bg-[#080B14] p-3 rounded-xl border border-white/5 group/file"
+            {selectedFiles.length > 0 && (
+              <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar" onClick={(e) => e.stopPropagation()}>
+                {selectedFiles.map((file, i) => (
+                  <div 
+                    key={i} 
+                    className="flex items-center justify-between bg-[#080B14] p-3 rounded-xl border border-white/5 group/file"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <FileText size={16} className="text-[#00d4ff] shrink-0" />
+                      <span className="text-xs font-medium text-gray-400 truncate">{file.name}</span>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => removeFile(i)}
+                      className="p-1 hover:bg-red-500/20 text-gray-500 hover:text-red-400 rounded-lg transition-colors"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <FileText size={16} className="text-[#00d4ff] shrink-0" />
-                        <span className="text-xs font-medium text-gray-400 truncate">{file.name}</span>
-                      </div>
-                      <button 
-                        type="button" 
-                        onClick={() => removeFile(i)}
-                        className="p-1 hover:bg-red-500/20 text-gray-500 hover:text-red-400 rounded-lg transition-colors"
-                      >
-                        <X size={14} />
-                      </button>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
         <div className="flex items-center justify-between pt-6 border-t border-white/5">
           <div className="flex items-center gap-2">
-            <Zap size={16} className="text-[#ff6b35] animate-pulse" />
+            <Zap size={16} className="text-[#ff6b35]" />
             <span className="text-xs font-bold font-orbitron text-gray-500">CONSUMPTION: <span className="text-[#ff6b35]">1 NODE CREDIT</span></span>
           </div>
           <button

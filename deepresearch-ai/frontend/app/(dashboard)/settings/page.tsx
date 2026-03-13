@@ -1,7 +1,6 @@
 "use client"
 import { useAuthContext } from '@/context/AuthContext'
 import { User, Shield, CreditCard, Mail, Key, ChevronRight, Activity, Terminal } from 'lucide-react'
-import { motion } from 'framer-motion'
 import FuturisticCard from '@/components/ui/FuturisticCard'
 import Link from 'next/link'
 
@@ -16,28 +15,9 @@ export default function SettingsPage() {
     pro: 'text-[#8b5cf6]'
   }
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  }
-
-  const item = {
-    hidden: { opacity: 0, y: 10 },
-    show: { opacity: 1, y: 0 }
-  }
-
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-12 pb-20">
-      <motion.div 
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="space-y-4"
-      >
+      <div className="space-y-4">
         <div className="flex items-center gap-2 text-gray-500 font-orbitron text-[10px] tracking-[0.2em]">
           <Link href="/dashboard" className="hover:text-[#00d4ff] transition-colors">TERMINAL</Link>
           <ChevronRight size={10} />
@@ -53,16 +33,11 @@ export default function SettingsPage() {
                 <p className="text-gray-500 font-medium text-sm">Manage operative profile and neural node access.</p>
             </div>
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div 
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="grid grid-cols-1 gap-8"
-      >
+      <div className="grid grid-cols-1 gap-8">
         {/* Profile Section */}
-        <motion.div variants={item}>
+        <div>
             <FuturisticCard glowColor="#00d4ff">
                 <div className="flex items-center gap-3 mb-8 border-b border-white/5 pb-4">
                     <User size={20} className="text-[#00d4ff]" />
@@ -87,10 +62,10 @@ export default function SettingsPage() {
                     </div>
                 </div>
             </FuturisticCard>
-        </motion.div>
+        </div>
 
         {/* Subscription Section */}
-        <motion.div variants={item}>
+        <div>
             <FuturisticCard glowColor="#8b5cf6">
                 <div className="flex items-center gap-3 mb-8 border-b border-white/5 pb-4">
                     <CreditCard size={20} className="text-[#8b5cf6]" />
@@ -109,10 +84,10 @@ export default function SettingsPage() {
                     </Link>
                 </div>
             </FuturisticCard>
-        </motion.div>
+        </div>
 
         {/* Security Section (Placeholder) */}
-        <motion.div variants={item} className="opacity-40 grayscale pointer-events-none">
+        <div className="opacity-40 grayscale pointer-events-none">
             <FuturisticCard glowColor="#ff6b35">
                 <div className="flex items-center gap-3 mb-8 border-b border-white/5 pb-4">
                     <Key size={20} className="text-[#ff6b35]" />
@@ -120,13 +95,13 @@ export default function SettingsPage() {
                 </div>
                 <div className="flex items-center gap-4 p-8 border-2 border-dashed border-white/5 rounded-2xl">
                     <div className="p-3 bg-white/5 rounded-full">
-                        <Activity size={24} className="text-gray-600 animate-pulse" />
+                        <Activity size={24} className="text-gray-600" />
                     </div>
                     <p className="text-xs font-orbitron font-bold text-gray-600 tracking-[0.2em] italic uppercase">Advanced MFA & Bio-link Encryption protocols pending v2.0 update...</p>
                 </div>
             </FuturisticCard>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   )
 }

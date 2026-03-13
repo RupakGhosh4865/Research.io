@@ -4,7 +4,6 @@ import { Check, ArrowRight, Zap, Shield, Cpu, ChevronRight, Activity } from 'luc
 import api from '@/lib/api'
 import { useAuthContext } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
 import FuturisticCard from '@/components/ui/FuturisticCard'
 import Link from 'next/link'
 
@@ -68,34 +67,15 @@ export default function PricingPage() {
     }
   }
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  }
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  }
-
   return (
     <div className="min-h-screen bg-[#03050a] text-white py-24 px-6 relative overflow-hidden">
       <div className="cyber-grid" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-[#00d4ff]/5 blur-[120px] rounded-full -z-10" />
       
       <div className="max-w-7xl mx-auto space-y-20 relative z-10">
-        <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center space-y-6"
-        >
+        <div className="text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00d4ff]/10 border border-[#00d4ff]/30 text-[#00d4ff] font-orbitron text-[10px] tracking-[0.4em] mb-4">
-            <Activity size={14} className="animate-pulse" />
+            <Activity size={14} />
             RESOURCE_ALLOCATION_MATRIX
           </div>
           <h1 className="text-6xl md:text-8xl font-black font-orbitron tracking-tighter text-glow uppercase leading-none">
@@ -104,16 +84,11 @@ export default function PricingPage() {
           <p className="text-gray-500 font-medium text-lg max-w-2xl mx-auto font-outfit">
             Calibrate your operational capacity. Select a neural node to scale your research intelligence.
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="grid grid-cols-1 lg:grid-cols-3 gap-8"
-        >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {tiers.map((tier) => (
-            <motion.div key={tier.name} variants={item}>
+            <div key={tier.name}>
                 <FuturisticCard glowColor={tier.glow} className="h-full">
                     <div className="space-y-8 h-full flex flex-col">
                         <div className="space-y-2">
@@ -169,17 +144,13 @@ export default function PricingPage() {
                         </button>
                     </div>
                 </FuturisticCard>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
-        <motion.div 
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            className="text-center pt-20"
-        >
+        <div className="text-center pt-20">
             <p className="font-orbitron text-[10px] text-gray-600 tracking-[0.5em] uppercase">Enterprise Grade Infrastructure // Secure Ledger 1024-AES</p>
-        </motion.div>
+        </div>
       </div>
     </div>
   )

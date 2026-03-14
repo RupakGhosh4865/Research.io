@@ -8,6 +8,7 @@ interface User {
     email: string
     credits_remaining: number
     plan: string
+    is_admin?: boolean
 }
 
 interface AuthContextType {

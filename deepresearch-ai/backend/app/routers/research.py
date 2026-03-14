@@ -92,7 +92,8 @@ class ApprovePlanReq(BaseModel):
 
 @router.post("/{session_id}/approve-plan")
 async def approve_plan(session_id: str, req: ApprovePlanReq, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_id))
+    session_uuid = uuid.UUID(session_id)
+    result = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_uuid))
     session = result.scalars().first()
     if not session or session.user_id != user.id:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -108,7 +109,7 @@ async def approve_plan(session_id: str, req: ApprovePlanReq, user: User = Depend
                 session_id,
                 session.topic,
                 session.langgraph_thread_id,
-                [], # Plan approved, we don't need to pass doc IDs again as they are in LangGraph state
+                [], 
                 str(user.id)
             )
         except Exception as e:
@@ -125,13 +126,14 @@ async def approve_plan(session_id: str, req: ApprovePlanReq, user: User = Depend
 
 @router.get("/{session_id}/status")
 async def get_session_status(session_id: str, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_id))
+    session_uuid = uuid.UUID(session_id)
+    result = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_uuid))
     session = result.scalars().first()
     if not session or session.user_id != user.id:
         raise HTTPException(status_code=404, detail="Session not found")
         
     from app.models.research import Report
-    report_res = await db.execute(select(Report.id).filter(Report.session_id == session_id))
+    report_res = await db.execute(select(Report.id).filter(Report.session_id == session_uuid))
     report_id = report_res.scalars().first()
         
     return {

@@ -2,6 +2,7 @@ import os
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 import asyncio
+import uuid
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.agents.state import ResearchState
@@ -63,25 +64,31 @@ async def run_graph(session_id: str, topic: str, thread_id: str, uploaded_doc_id
         is_resume = existing_checkpoint and existing_checkpoint.values
         
         if is_resume:
+            print(f"[Graph] Resuming session {session_id} for thread {thread_id}")
             # If resuming, check if we need to update state with approval
             from app.database import AsyncSessionLocal
             from app.models.research import ResearchSession, SessionStatus
             from sqlalchemy.future import select
             
             async with AsyncSessionLocal() as db:
-                res = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_id))
+                session_uuid = uuid.UUID(session_id)
+                res = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_uuid))
                 session = res.scalars().first()
-                if session and session.plan_approved:
-                    # Sync approval to LangGraph state
-                    await graph.aupdate_state(config, {"plan_approved": True}, as_node="planner")
-                    
-                    # Update status to searching if it was planning
-                    if session.status == SessionStatus.planning:
-                        session.status = SessionStatus.searching
-                        await db.commit()
+                if session:
+                    print(f"[Graph] Session status: {session.status}, Plan approved: {session.plan_approved}")
+                    if session.plan_approved:
+                        # Sync approval to LangGraph state
+                        await graph.aupdate_state(config, {"plan_approved": True}, as_node="planner")
+                        
+                        # Update status to searching if it was planning
+                        if session.status == SessionStatus.planning:
+                            session.status = SessionStatus.searching
+                            await db.commit()
+                            print(f"[Graph] Status updated to searching")
             
             input_data = None
         else:
+            print(f"[Graph] Starting new session {session_id}")
             input_data = {
                 "topic": topic,
                 "session_id": session_id,
@@ -113,8 +120,8 @@ async def run_graph(session_id: str, topic: str, thread_id: str, uploaded_doc_id
             from sqlalchemy.future import select
             
             async with AsyncSessionLocal() as db:
-                # Update session status
-                res = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_id))
+                session_uuid = uuid.UUID(session_id)
+                res = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_uuid))
                 session = res.scalars().first()
                 
                 # Extract report content
@@ -135,7 +142,7 @@ async def run_graph(session_id: str, topic: str, thread_id: str, uploaded_doc_id
 
                 report_title = f"Research Report: {topic}"
                 
-                res = await db.execute(select(Report).filter(Report.session_id == session_id))
+                res = await db.execute(select(Report).filter(Report.session_id == session_uuid))
                 report = res.scalars().first()
                 
                 if not report:

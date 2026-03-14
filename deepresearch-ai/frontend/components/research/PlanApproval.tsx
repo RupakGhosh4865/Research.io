@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { approveResearchPlan } from '../../lib/api'
 
-export default function PlanApproval({ sessionId, onApproved }: { sessionId: str, onApproved: () => void }) {
+export default function PlanApproval({ sessionId, onApproved }: { sessionId: string, onApproved: () => void }) {
   const [feedback, setFeedback] = useState("")
   const [loading, setLoading] = useState(false)
 

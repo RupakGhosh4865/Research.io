@@ -47,6 +47,15 @@ def get_async_sessionmaker():
     
     return _loop_sessionmakers[loop]
 
+def get_async_engine():
+    """Returns a loop-specific engine."""
+    get_async_sessionmaker() # Ensure engine is created for this loop
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.get_event_loop()
+    return _loop_engines.get(loop)
+
 # For legacy/standard FastAPI use (FastAPI usually runs in a single loop)
 class AsyncSessionLocalProxy:
     def __call__(self):
@@ -62,5 +71,6 @@ async def get_db():
         yield session
 
 async def init_db():
+    engine = get_async_engine()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

@@ -2,7 +2,7 @@
 import { useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuthContext } from '@/context/AuthContext'
-import api from '@/lib/api'
+import api from '../../../lib/api'
 
 function AuthCallbackContent() {
     const router = useRouter()

@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { Users, FileText, Zap, Crown, Mail, Calendar, ShieldCheck } from 'lucide-react'
-import api from '@/lib/api'
+import api from '../../../lib/api'
 import { motion } from 'framer-motion'
 import { useAuthContext } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'

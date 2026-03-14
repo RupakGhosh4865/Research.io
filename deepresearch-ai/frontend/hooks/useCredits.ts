@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useAuthContext } from '@/context/AuthContext'
-import api, { setAuthToken } from '@/lib/api'
+import api, { setAuthToken } from '../lib/api'
 
 export function useCredits() {
   const { token, user, isLoading: authLoading } = useAuthContext()

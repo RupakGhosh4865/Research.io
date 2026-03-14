@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getReport } from '@/lib/api'
+import { getReport } from '../../lib/api'
 import { Download, Share2, FileText, Globe, Link as LinkIcon, Lock, Cpu, Loader2 } from 'lucide-react'
 import FuturisticCard from '@/components/ui/FuturisticCard'
 

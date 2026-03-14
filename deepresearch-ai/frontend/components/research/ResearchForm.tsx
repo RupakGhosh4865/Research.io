@@ -1,7 +1,7 @@
 "use client"
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { startResearch, setAuthToken, uploadDocument } from '@/lib/api'
+import { startResearch, setAuthToken, uploadDocument } from '../../lib/api'
 import { useAuthContext } from '@/context/AuthContext'
 import { Upload, X, Zap, Loader2, FileText, ChevronRight, Search, Shield } from 'lucide-react'
 import FuturisticCard from '@/components/ui/FuturisticCard'

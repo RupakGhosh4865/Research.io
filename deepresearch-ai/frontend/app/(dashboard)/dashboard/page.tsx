@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from 'react'
-import { getUserStats, setAuthToken } from '@/lib/api'
+import { getUserStats, setAuthToken } from '../../../lib/api'
 import Link from 'next/link'
 import { ArrowRight, Clock, Zap, FileSearch, BarChart3, ChevronRight, Activity } from 'lucide-react'
 import { useAuthContext } from '@/context/AuthContext'

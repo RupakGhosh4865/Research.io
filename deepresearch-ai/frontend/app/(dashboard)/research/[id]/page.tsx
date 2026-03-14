@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import AgentFeed from '@/components/research/AgentFeed'
 import ReportViewer from '@/components/research/ReportViewer'
-import { getSessionStatus } from '@/lib/api'
+import { getSessionStatus } from '../../../../lib/api'
 
 export default function ResearchViewPage({ params }: { params: { id: string } }) {
   const [reportId, setReportId] = useState<string | undefined>()

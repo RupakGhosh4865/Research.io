@@ -1,7 +1,7 @@
 "use client"
 import { useQuery } from '@tanstack/react-query'
 import { useAuthContext } from '@/context/AuthContext'
-import api, { setAuthToken } from '@/lib/api'
+import api, { setAuthToken } from '../../../lib/api'
 import Link from 'next/link'
 
 export default function HistoryPage() {

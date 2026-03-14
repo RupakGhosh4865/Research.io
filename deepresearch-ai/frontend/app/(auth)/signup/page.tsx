@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { useAuthContext } from '@/context/AuthContext'
-import api from '@/lib/api'
+import api from '../../../lib/api'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { UserPlus, Mail, Lock, ArrowRight, Loader2, Sparkles } from 'lucide-react'

@@ -1,6 +1,6 @@
 "use client"
 import { useState } from 'react'
-import { approveResearchPlan } from '@/lib/api'
+import { approveResearchPlan } from '../../lib/api'
 
 export default function PlanApproval({ sessionId, onApproved }: { sessionId: str, onApproved: () => void }) {
   const [feedback, setFeedback] = useState("")

@@ -1,7 +1,7 @@
 "use client"
 import { useState } from 'react'
 import { Check, ArrowRight, Zap, Shield, Cpu, ChevronRight, Activity } from 'lucide-react'
-import api from '@/lib/api'
+import api from '../../lib/api'
 import { useAuthContext } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import FuturisticCard from '@/components/ui/FuturisticCard'

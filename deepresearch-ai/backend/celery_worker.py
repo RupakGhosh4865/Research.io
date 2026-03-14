@@ -19,13 +19,18 @@ celery_app = Celery("research_worker", broker=redis_url, backend=redis_url)
 @celery_app.task(name="run_research_task")
 def run_research_task(session_id: str, topic: str, thread_id: str, uploaded_doc_ids: list[str] = [], user_id: str = ""):
     from app.agents.graph import run_graph
-    import redis
+    import redis.asyncio as aioredis
+    import asyncio
     
-    redis_client = redis.from_url(redis_url, decode_responses=True)
-    try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(run_graph(session_id, topic, thread_id, uploaded_doc_ids, user_id))
-    except Exception as e:
-        print(f"Graph failed: {str(e)}")
-        from app.utils.streaming import publish_error_event
-        loop.run_until_complete(publish_error_event(session_id, str(e), redis_client))
+    async def run_task():
+        redis_client = aioredis.from_url(redis_url, decode_responses=True)
+        try:
+            await run_graph(session_id, topic, thread_id, uploaded_doc_ids, user_id)
+        except Exception as e:
+            print(f"Graph failed: {str(e)}")
+            from app.utils.streaming import publish_error_event
+            await publish_error_event(session_id, str(e), redis_client)
+        finally:
+            await redis_client.close()
+
+    asyncio.run(run_task())

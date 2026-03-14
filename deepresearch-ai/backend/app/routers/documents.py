@@ -29,8 +29,12 @@ async def upload_document(
     
     if user.plan == PlanType.free and doc_count >= 1:
          raise HTTPException(status_code=403, detail="Free plan limited to 1 document. Please upgrade.")
-    if user.plan == PlanType.starter and doc_count >= 5:
-         raise HTTPException(status_code=403, detail="Starter plan limited to 5 documents. Please upgrade to Pro.")
+    if user.plan == PlanType.test and doc_count >= 3:
+         raise HTTPException(status_code=403, detail="Test plan limited to 3 documents. Please upgrade.")
+    if user.plan == PlanType.starter and doc_count >= 10:
+         raise HTTPException(status_code=403, detail="Pro plan limited to 10 documents. Please upgrade to Special Pro.")
+    if user.plan == PlanType.pro and doc_count >= 30:
+         raise HTTPException(status_code=403, detail="Special Pro plan limited to 30 documents.")
 
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")

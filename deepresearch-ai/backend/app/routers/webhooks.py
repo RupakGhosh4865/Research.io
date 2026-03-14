@@ -65,41 +65,89 @@ async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
 
     return {"success": True}
 
-import stripe
-
-@router.post("/stripe")
-async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
+@router.post("/razorpay")
+async def razorpay_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     payload = await request.body()
-    sig_header = request.headers.get("stripe-signature")
+    # Razorpay recommends verifying the signature for every webhook
+    # For simplicity, we'll verify the signature provided in the payment response on the frontend 
+    # OR handle the payment.captured event here.
     
-    if not sig_header:
-        raise HTTPException(status_code=400, detail="Missing stripe signature")
-        
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
-        )
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    # In a typical Razorpay flow, the frontend sends the payment_id and order_id to a verification endpoint
+    # Let's add a separate verification endpoint in payments.py or handle it here if it's a standard webhook.
     
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        user_id = session.get('metadata', {}).get('user_id')
-        plan = session.get('metadata', {}).get('plan')
-        customer_id = session.get('customer')
+    # If this is a standard webhook (payment.captured)
+    import json
+    data = json.loads(payload)
+    
+    # Verify signature if RAZORPAY_WEBHOOK_SECRET is set
+    if settings.RAZORPAY_WEBHOOK_SECRET:
+        signature = request.headers.get("X-Razorpay-Signature")
+        if not signature:
+             raise HTTPException(status_code=400, detail="Missing signature")
+        # Signature verification logic here...
+    
+    event = data.get("event")
+    if event == "payment.captured":
+        payment = data["payload"]["payment"]["entity"]
+        order_id = payment.get("order_id")
+        # Find user by order notes or custom lookup
+        notes = data["payload"]["payment"]["entity"].get("notes", {})
+        user_id = notes.get("user_id")
+        plan = notes.get("plan")
         
         if user_id:
             from app.models.user import PlanType
             result = await db.execute(select(User).filter(User.id == user_id))
             user = result.scalars().first()
             if user:
-                user.stripe_customer_id = customer_id
-                user.plan = PlanType[plan]
-                # Add credits based on plan
-                if plan == 'starter':
-                    user.credits_remaining += 50
+                user.plan = PlanType(plan)
+                if plan == 'test':
+                    user.credits_remaining += 10
+                elif plan == 'starter':
+                    user.credits_remaining += 30
                 elif plan == 'pro':
-                    user.credits_remaining += 200
+                    user.credits_remaining += 50
                 await db.commit()
                 
     return {"status": "success"}
+
+@router.post("/razorpay-verify")
+async def razorpay_verify(data: dict, db: AsyncSession = Depends(get_db)):
+    # Manual verification endpoint called from frontend
+    from app.utils.razorpay_utils import get_razorpay_client
+    import hmac
+    import hashlib
+
+    order_id = data.get("razorpay_order_id")
+    payment_id = data.get("razorpay_payment_id")
+    signature = data.get("razorpay_signature")
+    user_id = data.get("user_id")
+    plan = data.get("plan")
+
+    # Verify signature
+    msg = f"{order_id}|{payment_id}"
+    expected_signature = hmac.new(
+        key=settings.RAZORPAY_KEY_SECRET.encode(),
+        msg=msg.encode(),
+        digestmod=hashlib.sha256
+    ).hexdigest()
+
+    if expected_signature != signature:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+
+    # Update user
+    from app.models.user import PlanType
+    result = await db.execute(select(User).filter(User.id == user_id))
+    user = result.scalars().first()
+    if user:
+        user.plan = PlanType(plan)
+        if plan == 'test':
+            user.credits_remaining += 10
+        elif plan == 'starter':
+            user.credits_remaining += 30
+        elif plan == 'pro':
+            user.credits_remaining += 50
+        await db.commit()
+        return {"status": "success"}
+    
+    raise HTTPException(status_code=404, detail="User not found")

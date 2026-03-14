@@ -14,7 +14,8 @@ async def lifespan(app: FastAPI):
     await init_db()
     if getattr(settings, "LANGCHAIN_TRACING_V2", "false").lower() == "true":
         os.environ["LANGCHAIN_TRACING_V2"] = "true"
-        os.environ["LANGCHAIN_API_KEY"] = settings.LANGCHAIN_API_KEY
+        if settings.LANGCHAIN_API_KEY:
+            os.environ["LANGCHAIN_API_KEY"] = settings.LANGCHAIN_API_KEY
         if settings.LANGCHAIN_PROJECT:
             os.environ["LANGCHAIN_PROJECT"] = settings.LANGCHAIN_PROJECT
     yield

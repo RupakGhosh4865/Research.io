@@ -100,6 +100,20 @@ async def approve_plan(session_id: str, req: ApprovePlanReq, user: User = Depend
     if req.approved:
         session.plan_approved = True
         await db.commit()
+        
+        # Resume the research task
+        try:
+            celery_module = importlib.import_module("celery_worker")
+            celery_module.run_research_task.delay(
+                session_id,
+                session.topic,
+                session.langgraph_thread_id,
+                [], # Plan approved, we don't need to pass doc IDs again as they are in LangGraph state
+                str(user.id)
+            )
+        except Exception as e:
+            print("Error re-queuing celery task:", e)
+            
         redis_conn = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
         await redis_conn.publish(f"research:{session_id}:control", json.dumps({"action": "resume", "feedback": req.feedback}))
         await redis_conn.close()

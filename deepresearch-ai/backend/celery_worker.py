@@ -24,7 +24,7 @@ def run_research_task(session_id: str, topic: str, thread_id: str, uploaded_doc_
     redis_client = redis.from_url(redis_url, decode_responses=True)
     try:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(run_graph(session_id, topic, thread_id, uploaded_doc_ids))
+        loop.run_until_complete(run_graph(session_id, topic, thread_id, uploaded_doc_ids, user_id))
     except Exception as e:
         print(f"Graph failed: {str(e)}")
         from app.utils.streaming import publish_error_event

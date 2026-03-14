@@ -48,34 +48,62 @@ async def run_graph(session_id: str, topic: str, thread_id: str, uploaded_doc_id
     
     db_url = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
     
-    async with AsyncPostgresSaver.from_conn_string(db_url) as checkpointer:
+    # AsyncPostgresSaver usually wants the standard postgresql:// DSN, not the async driver one
+    pg_conn_str = settings.DATABASE_URL
+    
+    async with AsyncPostgresSaver.from_conn_string(pg_conn_str) as checkpointer:
         await checkpointer.setup()
         graph = build_graph().compile(checkpointer=checkpointer, interrupt_before=["search_agent"])
         
-        initial_state = {
-            "topic": topic,
-            "session_id": session_id,
-            "user_id": user_id,
-            "thread_id": thread_id,
-            "uploaded_doc_ids": uploaded_doc_ids,
-            "plan_approved": False,
-            "search_results": [],
-            "draft_report": None,
-            "final_report": None,
-            "citations": [],
-            "quality_score": 0.0,
-            "critic_feedback": "",
-            "revision_count": 0,
-            "max_revisions": 2,
-            "status": "started",
-            "error": None
-        }
-    
         config = {"configurable": {"thread_id": thread_id}}
-    
+        
+        # Check if we have an existing state to resume
+        existing_checkpoint = await graph.aget_state(config)
+        
+        is_resume = existing_checkpoint and existing_checkpoint.values
+        
+        if is_resume:
+            # If resuming, check if we need to update state with approval
+            from app.database import AsyncSessionLocal
+            from app.models.research import ResearchSession, SessionStatus
+            from sqlalchemy.future import select
+            
+            async with AsyncSessionLocal() as db:
+                res = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_id))
+                session = res.scalars().first()
+                if session and session.plan_approved:
+                    # Sync approval to LangGraph state
+                    await graph.aupdate_state(config, {"plan_approved": True}, as_node="planner")
+                    
+                    # Update status to searching if it was planning
+                    if session.status == SessionStatus.planning:
+                        session.status = SessionStatus.searching
+                        await db.commit()
+            
+            input_data = None
+        else:
+            input_data = {
+                "topic": topic,
+                "session_id": session_id,
+                "user_id": user_id,
+                "thread_id": thread_id,
+                "uploaded_doc_ids": uploaded_doc_ids,
+                "plan_approved": False,
+                "search_results": [],
+                "draft_report": None,
+                "final_report": None,
+                "citations": [],
+                "quality_score": 0.0,
+                "critic_feedback": "",
+                "revision_count": 0,
+                "max_revisions": 2,
+                "status": "started",
+                "error": None
+            }
+        
         try:
-            final_state = initial_state
-            async for event in graph.astream(initial_state, config=config, stream_mode="values"):
+            final_state = {}
+            async for event in graph.astream(input_data, config=config, stream_mode="values"):
                 final_state = event
         
             # Save report logic here
@@ -88,11 +116,23 @@ async def run_graph(session_id: str, topic: str, thread_id: str, uploaded_doc_id
                 # Update session status
                 res = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_id))
                 session = res.scalars().first()
-                if session:
+                
+                # Extract report content
+                if not final_state:
+                    # If we interrupted, we might not have a final_state from recursion
+                    existing_state = await graph.aget_state(config)
+                    final_state = existing_state.values if existing_state else {}
+
+                if session and final_state.get("final_report"):
                     session.status = SessionStatus.completed
                 
                 # Create or update report
-                report_content = final_state.get("final_report", "No report generated.")
+                report_content = final_state.get("final_report")
+                if not report_content:
+                    # If no report yet (still in progress), skip report saving but commit status
+                    await db.commit()
+                    return
+
                 report_title = f"Research Report: {topic}"
                 
                 res = await db.execute(select(Report).filter(Report.session_id == session_id))

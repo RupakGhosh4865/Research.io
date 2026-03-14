@@ -41,7 +41,13 @@ async def start_research(req: StartResearchReq, user: User = Depends(get_current
     
     try:
         celery_module = importlib.import_module("celery_worker")
-        celery_module.run_research_task.delay(session_id_str, req.topic, thread_id, str(user.id), req.uploaded_doc_ids)
+        celery_module.run_research_task.delay(
+    session_id_str,
+    req.topic,
+    thread_id,
+    req.uploaded_doc_ids,
+    str(user.id)
+)
     except Exception as e:
         print("Error queuing celery task:", e)
 

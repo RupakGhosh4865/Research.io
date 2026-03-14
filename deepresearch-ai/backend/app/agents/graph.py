@@ -54,18 +54,14 @@ async def run_graph(session_id: str, topic: str, thread_id: str, uploaded_doc_id
     
     async with AsyncPostgresSaver.from_conn_string(pg_conn_str) as checkpointer:
         await checkpointer.setup()
-        graph = build_graph().compile(checkpointer=checkpointer, interrupt_before=["search_agent"])
         
+        # 1. Determine if we are resuming/approved BEFORE compiling
+        plan_approved = False
         config = {"configurable": {"thread_id": thread_id}}
-        
-        # Check if we have an existing state to resume
-        existing_checkpoint = await graph.aget_state(config)
-        
-        is_resume = existing_checkpoint and existing_checkpoint.values
+        existing_checkpoint = await checkpointer.aget(config) # Get raw checkpoint to check if it exists
+        is_resume = existing_checkpoint is not None
         
         if is_resume:
-            print(f"[Graph] Resuming session {session_id} for thread {thread_id}")
-            # If resuming, check if we need to update state with approval
             from app.database import get_async_sessionmaker
             from app.models.research import ResearchSession, SessionStatus
             from sqlalchemy.future import select
@@ -76,17 +72,29 @@ async def run_graph(session_id: str, topic: str, thread_id: str, uploaded_doc_id
                 res = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_uuid))
                 session = res.scalars().first()
                 if session:
-                    print(f"[Graph] Session status: {session.status}, Plan approved: {session.plan_approved}")
-                    if session.plan_approved:
-                        # Sync approval to LangGraph state
-                        await graph.aupdate_state(config, {"plan_approved": True}, as_node="planner")
-                        
-                        # Update status to searching if it was planning
-                        if session.status == SessionStatus.planning:
-                            session.status = SessionStatus.searching
-                            await db.commit()
-                            print(f"[Graph] Status updated to searching")
+                    plan_approved = session.plan_approved
+                    print(f"[Graph] Resuming session {session_id}. Plan approved: {plan_approved}")
+                    
+                    # Update status to searching if it was planning and is now approved
+                    if plan_approved and session.status == SessionStatus.planning:
+                        session.status = SessionStatus.searching
+                        await db.commit()
+                        print(f"[Graph] Updated database status to 'searching'")
+
+        # 2. Compile with CONDITIONAL interrupt
+        interrupts = ["search_agent"] if not plan_approved else []
+        print(f"[Graph] Compiling with interrupts: {interrupts}")
+        graph = build_graph().compile(checkpointer=checkpointer, interrupt_before=interrupts)
+        
+        if is_resume and plan_approved:
+            # Sync approval to LangGraph state if it's missing
+            state = await graph.aget_state(config)
+            if state.values and not state.values.get("plan_approved"):
+                print(f"[Graph] Syncing plan_approved=True to LangGraph state")
+                await graph.aupdate_state(config, {"plan_approved": True}, as_node="planner")
             
+            input_data = None
+        elif is_resume:
             input_data = None
         else:
             print(f"[Graph] Starting new session {session_id}")

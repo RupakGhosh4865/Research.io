@@ -66,10 +66,11 @@ async def run_graph(session_id: str, topic: str, thread_id: str, uploaded_doc_id
         if is_resume:
             print(f"[Graph] Resuming session {session_id} for thread {thread_id}")
             # If resuming, check if we need to update state with approval
-            from app.database import AsyncSessionLocal
+            from app.database import get_async_sessionmaker
             from app.models.research import ResearchSession, SessionStatus
             from sqlalchemy.future import select
             
+            AsyncSessionLocal = get_async_sessionmaker()
             async with AsyncSessionLocal() as db:
                 session_uuid = uuid.UUID(session_id)
                 res = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_uuid))
@@ -114,11 +115,12 @@ async def run_graph(session_id: str, topic: str, thread_id: str, uploaded_doc_id
                 final_state = event
         
             # Save report logic here
-            from app.database import AsyncSessionLocal
+            from app.database import get_async_sessionmaker
             from app.models.user import User
             from app.models.research import ResearchSession, Report, SessionStatus
             from sqlalchemy.future import select
             
+            AsyncSessionLocal = get_async_sessionmaker()
             async with AsyncSessionLocal() as db:
                 session_uuid = uuid.UUID(session_id)
                 res = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_uuid))

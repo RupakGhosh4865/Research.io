@@ -17,7 +17,7 @@ if redis_url.startswith("rediss://") and "ssl_cert_reqs" not in redis_url:
 celery_app = Celery("research_worker", broker=redis_url, backend=redis_url)
 
 @celery_app.task(name="run_research_task")
-def run_research_task(session_id: str, topic: str, thread_id: str, user_id: str, uploaded_doc_ids: list[str] = []):
+def run_research_task(session_id: str, topic: str, thread_id: str, uploaded_doc_ids: list[str] = [], user_id: str = ""):
     from app.agents.graph import run_graph
     import redis
     

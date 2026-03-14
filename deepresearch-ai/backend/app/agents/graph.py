@@ -47,100 +47,96 @@ async def run_graph(session_id: str, topic: str, thread_id: str, uploaded_doc_id
     import redis.asyncio as aioredis
     
     db_url = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
-    engine = create_async_engine(db_url)
     
-    # Use AsyncPostgresSaver when implementing full persistence
-    # async with AsyncPostgresSaver.from_conn_string(settings.DATABASE_URL) as checkpointer:
-    #    await checkpointer.setup()
-    #    graph = build_graph().compile(checkpointer=checkpointer, interrupt_before=["search_coordinator"])
-    
-    graph = build_graph().compile()
-    
-    initial_state = {
-        "topic": topic,
-        "session_id": session_id,
-        "user_id": user_id,
-        "thread_id": thread_id,
-        "uploaded_doc_ids": uploaded_doc_ids,
-        "plan_approved": False,
-        "search_results": [],
-        "draft_report": None,
-        "final_report": None,
-        "citations": [],
-        "quality_score": 0.0,
-        "critic_feedback": "",
-        "revision_count": 0,
-        "max_revisions": 2,
-        "status": "started",
-        "error": None
-    }
-    
-    config = {"configurable": {"thread_id": thread_id}}
-    
-    try:
-        final_state = initial_state
-        async for event in graph.astream(initial_state, config=config, stream_mode="values"):
-            final_state = event
+    async with AsyncPostgresSaver.from_conn_string(db_url) as checkpointer:
+        await checkpointer.setup()
+        graph = build_graph().compile(checkpointer=checkpointer, interrupt_before=["search_agent"])
         
-        # Save report logic here
-        from app.database import AsyncSessionLocal
-        from app.models.user import User
-        from app.models.research import ResearchSession, Report, SessionStatus
-        from sqlalchemy.future import select
+        initial_state = {
+            "topic": topic,
+            "session_id": session_id,
+            "user_id": user_id,
+            "thread_id": thread_id,
+            "uploaded_doc_ids": uploaded_doc_ids,
+            "plan_approved": False,
+            "search_results": [],
+            "draft_report": None,
+            "final_report": None,
+            "citations": [],
+            "quality_score": 0.0,
+            "critic_feedback": "",
+            "revision_count": 0,
+            "max_revisions": 2,
+            "status": "started",
+            "error": None
+        }
+    
+        config = {"configurable": {"thread_id": thread_id}}
+    
+        try:
+            final_state = initial_state
+            async for event in graph.astream(initial_state, config=config, stream_mode="values"):
+                final_state = event
         
-        async with AsyncSessionLocal() as db:
-            # Update session status
-            res = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_id))
-            session = res.scalars().first()
-            if session:
-                session.status = SessionStatus.completed
+            # Save report logic here
+            from app.database import AsyncSessionLocal
+            from app.models.user import User
+            from app.models.research import ResearchSession, Report, SessionStatus
+            from sqlalchemy.future import select
             
-            # Create or update report
-            report_content = final_state.get("final_report", "No report generated.")
-            report_title = f"Research Report: {topic}"
+            async with AsyncSessionLocal() as db:
+                # Update session status
+                res = await db.execute(select(ResearchSession).filter(ResearchSession.id == session_id))
+                session = res.scalars().first()
+                if session:
+                    session.status = SessionStatus.completed
+                
+                # Create or update report
+                report_content = final_state.get("final_report", "No report generated.")
+                report_title = f"Research Report: {topic}"
+                
+                res = await db.execute(select(Report).filter(Report.session_id == session_id))
+                report = res.scalars().first()
+                
+                if not report:
+                    report = Report(
+                        session_id=session_id,
+                        title=report_title,
+                        content=report_content,
+                        citations=final_state.get("citations", []),
+                        quality_score=final_state.get("quality_score", 0.0),
+                        word_count=len(report_content.split()) if report_content else 0,
+                        revision_count=final_state.get("revision_count", 0)
+                    )
+                    db.add(report)
+                else:
+                    report.title = report_title
+                    report.content = report_content
+                    report.citations = final_state.get("citations", []),
+                    report.quality_score = final_state.get("quality_score", 0.0)
+                    report.word_count = len(report_content.split()) if report_content else 0
+                    report.revision_count = final_state.get("revision_count", 0)
+                
+                await db.commit()
+                report_id = str(report.id)
             
-            res = await db.execute(select(Report).filter(Report.session_id == session_id))
-            report = res.scalars().first()
+            redis_url = settings.REDIS_URL
+            if redis_url.startswith("rediss://") and "ssl_cert_reqs" not in redis_url:
+                separator = "&" if "?" in redis_url else "?"
+                redis_url = f"{redis_url}{separator}ssl_cert_reqs=none"
+                
+            redis_client = aioredis.from_url(redis_url, decode_responses=True)
+            await publish_completed_event(session_id, report_id, redis_client)
+            await redis_client.close()
             
-            if not report:
-                report = Report(
-                    session_id=session_id,
-                    title=report_title,
-                    content=report_content,
-                    citations=final_state.get("citations", []),
-                    quality_score=final_state.get("quality_score", 0.0),
-                    word_count=len(report_content.split()) if report_content else 0,
-                    revision_count=final_state.get("revision_count", 0)
-                )
-                db.add(report)
-            else:
-                report.title = report_title
-                report.content = report_content
-                report.citations = final_state.get("citations", [])
-                report.quality_score = final_state.get("quality_score", 0.0)
-                report.word_count = len(report_content.split()) if report_content else 0
-                report.revision_count = final_state.get("revision_count", 0)
-            
-            await db.commit()
-            report_id = str(report.id)
-        
-        redis_url = settings.REDIS_URL
-        if redis_url.startswith("rediss://") and "ssl_cert_reqs" not in redis_url:
-            separator = "&" if "?" in redis_url else "?"
-            redis_url = f"{redis_url}{separator}ssl_cert_reqs=none"
-            
-        redis_client = aioredis.from_url(redis_url, decode_responses=True)
-        await publish_completed_event(session_id, report_id, redis_client)
-        await redis_client.close()
-        
-    except Exception as e:
-        print(f"Graph execution failed: {e}")
-        from app.utils.streaming import publish_error_event
-        redis_url = settings.REDIS_URL
-        if redis_url.startswith("rediss://") and "ssl_cert_reqs" not in redis_url:
-            separator = "&" if "?" in redis_url else "?"
-            redis_url = f"{redis_url}{separator}ssl_cert_reqs=none"
-            
-        redis_client = aioredis.from_url(redis_url, decode_responses=True)
-        await publish_error_event(session_id, str(e), redis_client)
-        await redis_client.close()
+        except Exception as e:
+            print(f"Graph execution failed: {e}")
+            from app.utils.streaming import publish_error_event
+            redis_url = settings.REDIS_URL
+            if redis_url.startswith("rediss://") and "ssl_cert_reqs" not in redis_url:
+                separator = "&" if "?" in redis_url else "?"
+                redis_url = f"{redis_url}{separator}ssl_cert_reqs=none"
+                
+            redis_client = aioredis.from_url(redis_url, decode_responses=True)
+            await publish_error_event(session_id, str(e), redis_client)
+            await redis_client.close()

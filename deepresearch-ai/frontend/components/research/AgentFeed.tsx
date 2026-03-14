@@ -92,7 +92,7 @@ export default function AgentFeed({ sessionId, isCompleted, onCompleted, onPlann
         </div>
       </div>
 
-      <FuturisticCard glowColor="#00d4ff" className="flex-1 overflow-hidden h-[calc(100vh-400px)]">
+      <FuturisticCard glowColor="#00d4ff" className="flex-1 overflow-hidden h-[400px] lg:h-[calc(100vh-400px)]">
         <div className="h-full flex flex-col p-4">
             {/* Neural Pipeline Visualization */}
             <div className="mb-8 border-b border-white/5 pb-8 relative overflow-hidden">

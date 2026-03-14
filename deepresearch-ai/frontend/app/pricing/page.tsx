@@ -121,7 +121,7 @@ export default function PricingPage() {
             <Activity size={14} />
             PRICING_PLANS
           </div>
-          <h1 className="text-6xl md:text-8xl font-black font-orbitron tracking-tighter text-glow uppercase leading-none">
+          <h1 className="text-5xl md:text-8xl font-black font-orbitron tracking-tighter text-glow uppercase leading-none">
             Our <span className="text-[#00d4ff]">Pricing</span>
           </h1>
           <p className="text-gray-500 font-medium text-lg max-w-2xl mx-auto font-outfit">

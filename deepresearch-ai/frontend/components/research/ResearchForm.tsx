@@ -143,15 +143,15 @@ export default function ResearchForm() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-6 border-t border-white/5">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-6 border-t border-white/5">
           <div className="flex items-center gap-2">
             <Zap size={16} className="text-[#ff6b35]" />
-            <span className="text-xs font-bold font-orbitron text-gray-500">COST: <span className="text-[#ff6b35]">1 CREDIT</span></span>
+            <span className="text-xs font-bold font-orbitron text-gray-500 uppercase tracking-[0.2em]">COST: <span className="text-[#ff6b35]">1 CREDIT</span></span>
           </div>
           <button
             disabled={loading || uploading || (user?.credits_remaining === 0)}
             type="submit"
-            className="btn-cyber flex items-center gap-3 w-full sm:w-auto"
+            className="btn-cyber flex items-center justify-center gap-3 w-full sm:w-auto px-10"
           >
             {loading ? (
               <>

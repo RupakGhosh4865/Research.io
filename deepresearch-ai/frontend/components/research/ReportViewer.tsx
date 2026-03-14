@@ -96,8 +96,8 @@ export default function ReportViewer({ reportId }: { reportId?: string }) {
         </div>
       </div>
 
-      <FuturisticCard glowColor="#00d4ff" className="flex-1 overflow-hidden h-[calc(100vh-250px)]">
-        <div className="h-full overflow-y-auto custom-scrollbar p-6">
+      <FuturisticCard glowColor="#00d4ff" className="flex-1 overflow-hidden h-[500px] lg:h-[calc(100vh-250px)]">
+        <div className="h-full overflow-y-auto custom-scrollbar p-4 sm:p-6">
             {report ? (
             <div className="max-w-4xl mx-auto space-y-12">
                 <div className="space-y-4 border-b border-white/5 pb-8">

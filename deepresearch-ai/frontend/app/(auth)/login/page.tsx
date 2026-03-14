@@ -57,7 +57,7 @@ export default function LoginPage() {
                         <span className="text-brand-primary">Deep</span>Research
                     </Link>
                     <h2 className="text-2xl font-bold">Welcome Back</h2>
-                    <p className="text-gray-500 mt-2">Enter your credentials to access your research fleet.</p>
+                    <p className="text-gray-500 mt-2">Enter your email and password to access your account.</p>
                 </div>
 
                 <div className="glass-card">
@@ -148,7 +148,7 @@ export default function LoginPage() {
                 </div>
 
                 <p className="mt-8 text-center text-[10px] text-gray-600 uppercase tracking-widest font-mono">
-                    Secure Tunnel — AES-256 Bit Encryption
+                    Your data is secure and encrypted
                 </p>
             </div>
         </div>

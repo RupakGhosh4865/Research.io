@@ -48,13 +48,13 @@ export default function Dashboard() {
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-[#00d4ff] font-orbitron text-[10px] tracking-[0.4em] mb-2">
             <span className="w-2 h-2 rounded-full bg-[#00d4ff]" />
-            SYSTEM ONLINE // SESSION ACTIVE
+            WELCOME BACK
         </div>
         <h1 className="text-5xl font-black font-orbitron tracking-tighter text-glow">
-          TERMINAL <span className="text-[#00d4ff]">OVERVIEW</span>
+          YOUR <span className="text-[#00d4ff]">DASHBOARD</span>
         </h1>
         <p className="text-gray-500 font-medium max-w-2xl">
-          Welcome back, operative. All research nodes are operational. System integrity at 98.4%.
+          Track your research papers and manage your credits here.
         </p>
       </div>
 
@@ -65,14 +65,14 @@ export default function Dashboard() {
                     <div className="p-3 bg-[#00d4ff]/10 rounded-xl text-[#00d4ff]">
                         <Zap size={24} />
                     </div>
-                    <span className="text-[10px] font-orbitron text-gray-500 tracking-widest uppercase">Available Credits</span>
+                    <span className="text-[10px] font-orbitron text-gray-500 tracking-widest uppercase">Research Credits</span>
                 </div>
                 <div className="space-y-1">
                     <p className="text-5xl font-black font-orbitron">{stats?.credits_remaining ?? 0}</p>
-                    <p className="text-xs text-[#00d4ff] font-bold uppercase tracking-widest">Neural Resources</p>
+                    <p className="text-xs text-[#00d4ff] font-bold uppercase tracking-widest">Available to use</p>
                 </div>
                 <Link href="/pricing" className="mt-8 flex items-center justify-between group/link p-3 rounded-lg bg-white/5 hover:bg-[#00d4ff]/10 transition-colors border border-white/5 hover:border-[#00d4ff]/30">
-                    <span className="text-xs font-bold font-orbitron text-gray-400 group-hover/link:text-white transition-colors">TOP UP NODE</span>
+                    <span className="text-xs font-bold font-orbitron text-gray-400 group-hover/link:text-white transition-colors">GET MORE CREDITS</span>
                     <ArrowRight size={14} className="text-gray-600 group-hover/link:text-[#00d4ff] transition-all transform group-hover/link:translate-x-1" />
                 </Link>
             </FuturisticCard>
@@ -84,11 +84,11 @@ export default function Dashboard() {
                     <div className="p-3 bg-[#ff6b35]/10 rounded-xl text-[#ff6b35]">
                         <FileSearch size={24} />
                     </div>
-                    <span className="text-[10px] font-orbitron text-gray-500 tracking-widest uppercase">Total Reports</span>
+                    <span className="text-[10px] font-orbitron text-gray-500 tracking-widest uppercase">Research Papers</span>
                 </div>
                 <div className="space-y-1">
                     <p className="text-5xl font-black font-orbitron">{stats?.total_reports ?? 0}</p>
-                    <p className="text-xs text-[#ff6b35] font-bold uppercase tracking-widest">Archived Intelligence</p>
+                    <p className="text-xs text-[#ff6b35] font-bold uppercase tracking-widest">Total Completed</p>
                 </div>
                 <div className="mt-8 flex items-center gap-2 p-3 rounded-lg bg-white/5 border border-white/5">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#ff6b35]" />
@@ -103,14 +103,14 @@ export default function Dashboard() {
                     <div className="p-3 bg-[#8b5cf6]/10 rounded-xl text-[#8b5cf6]">
                         <BarChart3 size={24} />
                     </div>
-                    <span className="text-[10px] font-orbitron text-gray-500 tracking-widest uppercase">Quality Factor</span>
+                    <span className="text-[10px] font-orbitron text-gray-500 tracking-widest uppercase">Average Quality</span>
                 </div>
                 <div className="space-y-1">
                     <div className="flex items-baseline gap-2">
                         <p className="text-5xl font-black font-orbitron">{stats?.avg_quality_score ?? 0}</p>
                         <span className="text-lg font-bold text-gray-600">/ 10</span>
                     </div>
-                    <p className="text-xs text-[#8b5cf6] font-bold uppercase tracking-widest">Cognitive Index</p>
+                    <p className="text-xs text-[#8b5cf6] font-bold uppercase tracking-widest">Research Score</p>
                 </div>
                 <div className="mt-8 flex items-center justify-between">
                     <div className="flex -space-x-2">
@@ -127,11 +127,11 @@ export default function Dashboard() {
       <div className="space-y-6">
         <div className="flex justify-between items-end border-b border-white/5 pb-4">
           <div className="space-y-1">
-            <h2 className="text-2xl font-black font-orbitron uppercase">Recent <span className="text-[#00d4ff]">Intelligence</span></h2>
-            <p className="text-xs text-gray-500 tracking-widest">CHRONOLOGICAL PROBE HISTORY</p>
+            <h2 className="text-2xl font-black font-orbitron uppercase">Recent <span className="text-[#00d4ff]">Research</span></h2>
+            <p className="text-xs text-gray-500 tracking-widest">YOUR HISTORY</p>
           </div>
           <Link href="/research/new" className="btn-cyber flex items-center gap-2">
-            INITIATE PROBE <ChevronRight size={16} />
+            NEW RESEARCH <ChevronRight size={16} />
           </Link>
         </div>
 
@@ -171,11 +171,11 @@ export default function Dashboard() {
                 <FileSearch size={32} />
               </div>
               <div className="space-y-1">
-                <h3 className="font-orbitron font-bold text-gray-400">NO ACTIVE PROBE DATA</h3>
-                <p className="text-xs text-gray-600">Initiate your first research probe to populate this archive.</p>
+                <h3 className="font-orbitron font-bold text-gray-400">NO RESEARCH YET</h3>
+                <p className="text-xs text-gray-600">Start your first research paper to see it here.</p>
               </div>
               <Link href="/research/new" className="mt-4 text-[10px] font-black tracking-[0.2em] text-[#00d4ff] hover:text-[#00d4ff]/80 transition-colors">
-                CLICK TO INITIALIZE
+                START NOW
               </Link>
             </div>
           )}

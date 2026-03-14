@@ -56,8 +56,8 @@ export default function SignupPage() {
                     <Link href="/" className="font-syne text-3xl font-bold flex items-center justify-center gap-2 mb-4 text-white hover:text-brand-primary transition-colors">
                         <span className="text-brand-primary">Deep</span>Research
                     </Link>
-                    <h2 className="text-2xl font-bold">Join the Agency</h2>
-                    <p className="text-gray-500 mt-2">Deploy your first research fleet in seconds.</p>
+                    <h2 className="text-2xl font-bold">Create Account</h2>
+                    <p className="text-gray-500 mt-2">Start your first research paper in seconds.</p>
                 </div>
 
                 <div className="glass-card relative overflow-hidden">
@@ -111,11 +111,11 @@ export default function SignupPage() {
                         >
                             {loading ? (
                                 <>
-                                    <Loader2 className="animate-spin" size={20} /> Initializing...
+                                    <Loader2 className="animate-spin" size={20} /> Creating account...
                                 </>
                             ) : (
                                 <>
-                                    Sign Up & Start <ArrowRight size={18} />
+                                    Sign Up <ArrowRight size={18} />
                                 </>
                             )}
                         </button>
@@ -124,7 +124,7 @@ export default function SignupPage() {
                     <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                             <div className="w-1 h-1 rounded-full bg-brand-primary"></div>
-                            10 Free research credits on signup
+                            5 Free research credits on signup
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                             <div className="w-1 h-1 rounded-full bg-brand-primary"></div>

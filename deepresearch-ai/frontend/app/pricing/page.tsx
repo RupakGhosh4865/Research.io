@@ -9,32 +9,42 @@ import Link from 'next/link'
 
 const tiers = [
   {
-    name: 'BASIC NODE',
+    name: 'Free Plan',
     id: 'free',
     price: '0',
-    description: 'Entry-level access to the agent collective.',
-    features: ['3 Neural Credits / mo', 'Standard Research Quality', 'PDF Data Export'],
-    buttonText: 'CURRENT_PROTOCOL',
+    description: 'Perfect for trying out our research tools.',
+    features: ['5 Research Papers', '1 Document Upload', 'PDF Downloads'],
+    buttonText: 'Current Plan',
     highlighted: false,
     glow: '#94a3b8'
   },
   {
-    name: 'STARTER NODE',
+    name: 'Test Upgrade',
+    id: 'test',
+    price: '1',
+    description: 'Unlock more capacity for a tiny fee.',
+    features: ['10 Research Papers', '3 Document Uploads', 'PDF Downloads'],
+    buttonText: 'Upgrade Now',
+    highlighted: false,
+    glow: '#00d4ff'
+  },
+  {
+    name: 'Pro Plan',
     id: 'starter',
-    price: '29',
-    description: 'Accelerated intelligence for individuals.',
-    features: ['50 Neural Credits / mo', 'Enhanced Neural Quality', 'Priority Pipeline Access', '5 Context Documents'],
-    buttonText: 'INITIALIZE_UPGRADE',
+    price: '199',
+    description: 'Serious power for regular researchers.',
+    features: ['30 Research Papers', '10 Document Uploads', 'Priority Support', 'PDF Downloads'],
+    buttonText: 'Upgrade to Pro',
     highlighted: true,
     glow: '#00d4ff'
   },
   {
-    name: 'ELITE PROBE',
+    name: 'Special Pro',
     id: 'pro',
-    price: '99',
-    description: 'Maximum throughput for power operatives.',
-    features: ['200 Neural Credits / mo', 'Elite Research Quality', 'Unlimited Context Nodes', 'Custom Neural Branding', 'Direct API Bridge'],
-    buttonText: 'MAXIMIZE_THROUGHPUT',
+    price: '499',
+    description: 'Expert level research for heavy users.',
+    features: ['50 Research Papers', '30 Document Uploads', 'Dedicated Support', 'PDF Downloads'],
+    buttonText: 'Get Special Pro',
     highlighted: false,
     glow: '#8b5cf6'
   }
@@ -55,10 +65,43 @@ export default function PricingPage() {
 
     setLoading(plan)
     try {
-      const res = await api.post('/payments/create-checkout-session', null, { params: { plan } })
-      if (res.data.url) {
-        window.location.href = res.data.url
+      const res = await api.post('/payments/create-order', null, { params: { plan } })
+      const { order_id, amount, currency, key_id, user_email, user_name } = res.data
+
+      const options = {
+        key: key_id,
+        amount: amount,
+        currency: currency,
+        name: "DeepResearch AI",
+        description: `${plan.toUpperCase()} Node Subscription`,
+        order_id: order_id,
+        handler: async function (response: any) {
+          try {
+            // Verify payment on backend
+            await api.post('/webhooks/razorpay-verify', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              user_id: user.id,
+              plan: plan
+            })
+            router.push('/dashboard?payment=success')
+          } catch (err) {
+            console.error("Verification failed", err)
+            alert("Payment verification failed. Please contact support.")
+          }
+        },
+        prefill: {
+          name: user_name,
+          email: user_email,
+        },
+        theme: {
+          color: "#00d4ff",
+        },
       }
+
+      const rzp = new (window as any).Razorpay(options)
+      rzp.open()
     } catch (err) {
       console.error(err)
       alert("Failed to initiate payment.")
@@ -76,13 +119,13 @@ export default function PricingPage() {
         <div className="text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00d4ff]/10 border border-[#00d4ff]/30 text-[#00d4ff] font-orbitron text-[10px] tracking-[0.4em] mb-4">
             <Activity size={14} />
-            RESOURCE_ALLOCATION_MATRIX
+            PRICING_PLANS
           </div>
           <h1 className="text-6xl md:text-8xl font-black font-orbitron tracking-tighter text-glow uppercase leading-none">
-            Neural <span className="text-[#00d4ff]">Nodes</span>
+            Our <span className="text-[#00d4ff]">Pricing</span>
           </h1>
           <p className="text-gray-500 font-medium text-lg max-w-2xl mx-auto font-outfit">
-            Calibrate your operational capacity. Select a neural node to scale your research intelligence.
+            Choose the best plan for your research needs. Upgrade anytime to unlock more power.
           </p>
         </div>
 
@@ -99,8 +142,8 @@ export default function PricingPage() {
                                 )}
                             </div>
                             <div className="flex items-baseline gap-2">
-                                <span className={`${tier.highlighted ? 'text-glow' : ''} text-5xl font-black font-orbitron`} style={{ color: tier.glow }}>${tier.price}</span>
-                                <span className="text-gray-500 font-orbitron text-xs font-bold uppercase tracking-widest">/ SESSION_CYCLE</span>
+                                <span className={`${tier.highlighted ? 'text-glow' : ''} text-5xl font-black font-orbitron`} style={{ color: tier.glow }}>₹{tier.price}</span>
+                                <span className="text-gray-500 font-orbitron text-xs font-bold uppercase tracking-widest">/ ONE TIME</span>
                             </div>
                         </div>
 
@@ -137,7 +180,7 @@ export default function PricingPage() {
                                 <Activity size={18} className="animate-spin" />
                             ) : (
                                 <>
-                                    <span>{user?.plan === tier.id ? 'ACTIVE_PROTOCOL' : tier.buttonText}</span>
+                                    <span>{user?.plan === tier.id ? 'Current Plan' : tier.buttonText}</span>
                                     {user?.plan !== tier.id && tier.id !== 'free' && <ChevronRight size={18} />}
                                 </>
                             )}
@@ -149,7 +192,7 @@ export default function PricingPage() {
         </div>
 
         <div className="text-center pt-20">
-            <p className="font-orbitron text-[10px] text-gray-600 tracking-[0.5em] uppercase">Enterprise Grade Infrastructure // Secure Ledger 1024-AES</p>
+            <p className="font-orbitron text-[10px] text-gray-600 tracking-[0.5em] uppercase">Simple Payments // Secure Checkout with Razorpay</p>
         </div>
       </div>
     </div>

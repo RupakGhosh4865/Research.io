@@ -2,11 +2,13 @@
 import { useEffect, useState } from 'react'
 import { createResearchSSE } from '@/lib/sse'
 import { useAuthContext } from '@/context/AuthContext'
-import { CheckCircle, Cpu, ShieldAlert, Search, Database, PenTool, ClipboardCheck, Activity, Loader2 } from 'lucide-react'
+import { CheckCircle, Cpu, ShieldAlert, Search, Database, PenTool, ClipboardCheck, Activity, Loader2, Zap } from 'lucide-react'
 import FuturisticCard from '@/components/ui/FuturisticCard'
+import AgentPipeline from './AgentPipeline'
 
 export default function AgentFeed({ sessionId, isCompleted, onCompleted }: { sessionId: string, isCompleted?: boolean, onCompleted: (id: string) => void }) {
   const [messages, setMessages] = useState<any[]>([])
+  const [activeAgent, setActiveAgent] = useState<string | undefined>()
   const { token } = useAuthContext()
 
   useEffect(() => {
@@ -20,6 +22,10 @@ export default function AgentFeed({ sessionId, isCompleted, onCompleted }: { ses
           if (msg.type === 'heartbeat') return
           if (msg.type === 'completed') {
             onCompleted(msg.report_id)
+            setActiveAgent(undefined)
+          }
+          if (msg.type === 'agent_update') {
+            setActiveAgent(msg.agent)
           }
           setMessages(prev => [...prev, msg])
         },
@@ -75,21 +81,37 @@ export default function AgentFeed({ sessionId, isCompleted, onCompleted }: { ses
                 <Activity size={20} className="text-[#00d4ff]" />
                 <div className="absolute inset-0 bg-[#00d4ff]/20 rounded-full filter blur-md" />
             </div>
-            <h3 className="font-orbitron font-black text-xs tracking-widest text-glow">PIPELINE_FEED</h3>
+            <h3 className="font-orbitron font-black text-xs tracking-widest text-glow">LIVE PROGRESS</h3>
         </div>
         <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-gray-500 font-orbitron">LATENCY: 42MS</span>
+            <span className="text-[10px] font-bold text-gray-500 font-orbitron">STATUS: ONLINE</span>
             <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_#10b981]" />
         </div>
       </div>
 
       <FuturisticCard glowColor="#00d4ff" className="flex-1 overflow-hidden h-[calc(100vh-400px)]">
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col p-4">
+            {/* Neural Pipeline Visualization */}
+            <div className="mb-8 border-b border-white/5 pb-8 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[#00d4ff]" />
+                <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-[#00d4ff]" />
+                <AgentPipeline activeAgent={activeAgent} />
+                <div className="mt-4 flex justify-between items-center px-4">
+                    <div className="flex items-center gap-2">
+                        <Zap size={10} className={activeAgent ? "text-[#00d4ff] animate-pulse" : "text-gray-600"} />
+                        <span className="text-[8px] font-black font-orbitron tracking-tighter text-gray-500 uppercase">Status: {activeAgent ? 'WORKING' : 'WAITING'}</span>
+                    </div>
+                    <div className="flex gap-1">
+                        {[1,2,3,4].map(i => <div key={i} className={`w-1 h-3 rounded-full ${activeAgent ? 'bg-[#00d4ff] animate-pulse' : 'bg-gray-800'}`} style={{ animationDelay: `${i * 0.2}s` }} />)}
+                    </div>
+                </div>
+            </div>
+
             <div className="flex-1 overflow-y-auto space-y-6 pr-4 custom-scrollbar">
                 {messages.length === 0 && !isCompleted && (
-                    <div className="flex flex-col items-center justify-center h-full space-y-4">
+                    <div className="flex flex-col items-center justify-center h-48 space-y-4">
                         <Loader2 size={32} className="text-[#00d4ff] animate-spin" />
-                        <p className="font-orbitron text-[10px] tracking-[0.3em] text-[#00d4ff]">SYNCHRONIZING AGENT COLLECTIVE...</p>
+                        <p className="font-orbitron text-[10px] tracking-[0.3em] text-[#00d4ff]">CONNECTING TO AGENTS...</p>
                     </div>
                 )}
                 
@@ -99,8 +121,8 @@ export default function AgentFeed({ sessionId, isCompleted, onCompleted }: { ses
                             <CheckCircle className="text-green-500" size={48} />
                         </div>
                         <div>
-                            <p className="font-orbitron font-black text-[#00d4ff] tracking-tight">PROBE SEQUENCE COMPLETE</p>
-                            <p className="text-xs text-gray-500 font-bold tracking-tighter uppercase mt-1">Intelligence fully synthesized</p>
+                            <p className="font-orbitron font-black text-[#00d4ff] tracking-tight">RESEARCH FINISHED</p>
+                            <p className="text-xs text-gray-500 font-bold tracking-tighter uppercase mt-1">Your report is ready</p>
                         </div>
                     </div>
                 )}
@@ -130,7 +152,7 @@ export default function AgentFeed({ sessionId, isCompleted, onCompleted }: { ses
                                             <span className={`text-[10px] font-black font-orbitron tracking-widest uppercase`} style={{ color: glowColor }}>
                                                 {m.agent}
                                             </span>
-                                            {isThinking && <span className="text-[10px] text-gray-500 font-black animate-pulse">[PROCESSING...]</span>}
+                                            {isThinking && <span className="text-[10px] text-gray-500 font-black animate-pulse">[WORKING...]</span>}
                                         </div>
                                         <div className={`p-4 rounded-2xl rounded-tl-none bg-white/[0.03] border border-white/5 font-outfit text-sm leading-relaxed ${isThinking ? 'neon-border' : ''}`}>
                                             <span className="text-gray-300">{m.content}</span>

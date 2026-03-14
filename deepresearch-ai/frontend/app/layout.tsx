@@ -3,6 +3,7 @@ import { Inter, Syne } from 'next/font/google'
 import './globals.css'
 import Providers from '@/components/Providers'
 import { AuthProvider } from '@/context/AuthContext'
+import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const syne = Syne({ subsets: ['latin'], variable: '--font-syne' })
@@ -56,6 +57,11 @@ export default function RootLayout({
             {children}
           </Providers>
         </AuthProvider>
+        <Script
+          id="razorpay-checkout-js"
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   )

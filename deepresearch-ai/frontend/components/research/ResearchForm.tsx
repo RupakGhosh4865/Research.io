@@ -3,8 +3,9 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { startResearch, setAuthToken, uploadDocument } from '@/lib/api'
 import { useAuthContext } from '@/context/AuthContext'
-import { Upload, X, Zap, Loader2, FileText, ChevronRight, Search } from 'lucide-react'
+import { Upload, X, Zap, Loader2, FileText, ChevronRight, Search, Shield } from 'lucide-react'
 import FuturisticCard from '@/components/ui/FuturisticCard'
+import Link from 'next/link'
 
 export default function ResearchForm() {
   const [topic, setTopic] = useState("")
@@ -14,7 +15,7 @@ export default function ResearchForm() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   const router = useRouter()
-  const { token } = useAuthContext()
+  const { token, user } = useAuthContext()
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -61,17 +62,27 @@ export default function ResearchForm() {
   return (
     <FuturisticCard glowColor="#00d4ff" className="max-w-4xl mx-auto">
       <form onSubmit={handleSubmit} className="space-y-8 p-4">
+        {user && user.credits_remaining === 0 && (
+          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-between">
+            <div className="flex items-center gap-3 text-red-400">
+              <Shield size={20} />
+              <div className="text-sm font-bold">You have run out of research credits. Please upgrade to continue.</div>
+            </div>
+            <Link href="/pricing" className="text-xs font-black font-orbitron text-red-400 hover:text-white underline">UPGRADE_NOW</Link>
+          </div>
+        )}
+
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Search size={18} className="text-[#00d4ff]" />
-            <label className="text-xs font-black font-orbitron tracking-widest text-gray-400 uppercase">Input parameters</label>
+            <label className="text-xs font-black font-orbitron tracking-widest text-gray-400 uppercase">Research Topic</label>
           </div>
           <div className="relative group">
             <textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               className="w-full bg-[#080B14]/60 border border-white/10 rounded-2xl p-6 text-lg font-outfit text-white focus:outline-none focus:border-[#00d4ff]/50 focus:ring-1 focus:ring-[#00d4ff]/20 transition-all min-h-[180px] resize-none selection:bg-[#00d4ff]/30"
-              placeholder="IDENTIFY RESEARCH TARGET... (e.g., Quantum Computing Advancements 2024)"
+              placeholder="What would you like to research today? (e.g., Impact of AI on Healthcare)"
               required
             />
             {/* Corner deco */}
@@ -83,7 +94,7 @@ export default function ResearchForm() {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <FileText size={18} className="text-[#00d4ff]" />
-            <label className="text-xs font-black font-orbitron tracking-widest text-gray-400 uppercase">Context nodes (PDF)</label>
+            <label className="text-xs font-black font-orbitron tracking-widest text-gray-400 uppercase">Upload Documents (PDF)</label>
           </div>
           <div 
             onClick={() => fileInputRef.current?.click()}
@@ -103,7 +114,7 @@ export default function ResearchForm() {
               </div>
               <div>
                 <p className="text-sm font-bold text-gray-300">Drag & Drop or <span className="text-[#00d4ff] underline">Browse</span></p>
-                <p className="text-[10px] text-gray-500 font-black tracking-tighter uppercase mt-1">Maximum 5 Neural Context Files (.PDF)</p>
+                <p className="text-[10px] text-gray-500 font-black tracking-tighter uppercase mt-1">Upload PDF documents for context</p>
               </div>
             </div>
             
@@ -135,21 +146,21 @@ export default function ResearchForm() {
         <div className="flex items-center justify-between pt-6 border-t border-white/5">
           <div className="flex items-center gap-2">
             <Zap size={16} className="text-[#ff6b35]" />
-            <span className="text-xs font-bold font-orbitron text-gray-500">CONSUMPTION: <span className="text-[#ff6b35]">1 NODE CREDIT</span></span>
+            <span className="text-xs font-bold font-orbitron text-gray-500">COST: <span className="text-[#ff6b35]">1 CREDIT</span></span>
           </div>
           <button
-            disabled={loading || uploading}
+            disabled={loading || uploading || (user?.credits_remaining === 0)}
             type="submit"
             className="btn-cyber flex items-center gap-3 w-full sm:w-auto"
           >
             {loading ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                <span>{uploading ? "INJECTING NODES..." : "INITIALIZING PROBE..."}</span>
+                <span>{uploading ? "Uploading..." : "Starting..."}</span>
               </>
             ) : (
               <>
-                <span>INITIALIZE PROBE</span>
+                <span>Start Research</span>
                 <ChevronRight size={18} />
               </>
             )}

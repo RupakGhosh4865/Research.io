@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
 import httpx
+import urllib.parse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from pydantic import BaseModel, EmailStr
@@ -80,8 +81,11 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
 
 @router.get("/google/login")
 async def google_login():
-    if not settings.GOOGLE_CLIENT_ID:
-        raise HTTPException(status_code=500, detail="Google OAuth not configured")
+    if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_REDIRECT_URL:
+        raise HTTPException(
+            status_code=500, 
+            detail="Google OAuth not correctly configured (client_id or redirect_uri missing)"
+        )
     
     params = {
         "client_id": settings.GOOGLE_CLIENT_ID,
@@ -91,7 +95,9 @@ async def google_login():
         "access_type": "offline",
         "prompt": "select_account"
     }
-    url = f"https://accounts.google.com/o/oauth2/v2/auth?{'&'.join([f'{k}={v}' for k, v in params.items()])}"
+    
+    encoded_params = urllib.parse.urlencode(params)
+    url = f"https://accounts.google.com/o/oauth2/v2/auth?{encoded_params}"
     return RedirectResponse(url)
 
 @router.get("/google/callback")

@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     
     GOOGLE_CLIENT_ID: Optional[str] = None
     GOOGLE_CLIENT_SECRET: Optional[str] = None
-    GOOGLE_REDIRECT_URL: str = "http://localhost:8002/api/v1/auth/google/callback"
+    GOOGLE_REDIRECT_URL: Optional[str] = None
     
     RAZORPAY_KEY_ID: Optional[str] = None
     RAZORPAY_KEY_SECRET: Optional[str] = None

@@ -38,11 +38,12 @@ async def planner_node(state: ResearchState) -> dict:
         {"role": "user", "content": f"Topic: {state['topic']}"}
     ])
     
+    plan_summary = "\\n".join([f"- {q}" for q in plan.sub_questions])
     await publish_agent_event(
         session_id=session_id, 
         agent_name="planner", 
         status="completed", 
-        content=f"Created plan with {len(plan.sub_questions)} sub-questions", 
+        content=f"Created research plan with {len(plan.sub_questions)} sub-questions:\\n{plan_summary}", 
         redis_client=redis_client
     )
     

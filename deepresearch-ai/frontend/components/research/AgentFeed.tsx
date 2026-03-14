@@ -6,7 +6,7 @@ import { CheckCircle, Cpu, ShieldAlert, Search, Database, PenTool, ClipboardChec
 import FuturisticCard from '@/components/ui/FuturisticCard'
 import AgentPipeline from './AgentPipeline'
 
-export default function AgentFeed({ sessionId, isCompleted, onCompleted }: { sessionId: string, isCompleted?: boolean, onCompleted: (id: string) => void }) {
+export default function AgentFeed({ sessionId, isCompleted, onCompleted, onPlanningDone }: { sessionId: string, isCompleted?: boolean, onCompleted: (id: string) => void, onPlanningDone?: () => void }) {
   const [messages, setMessages] = useState<any[]>([])
   const [activeAgent, setActiveAgent] = useState<string | undefined>()
   const { token } = useAuthContext()
@@ -26,6 +26,9 @@ export default function AgentFeed({ sessionId, isCompleted, onCompleted }: { ses
           }
           if (msg.type === 'agent_update') {
             setActiveAgent(msg.agent)
+            if (msg.agent === 'planner' && msg.status === 'completed' && onPlanningDone) {
+              onPlanningDone()
+            }
           }
           setMessages(prev => [...prev, msg])
         },

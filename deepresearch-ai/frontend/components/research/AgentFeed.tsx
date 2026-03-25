@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createResearchSSE } from '@/lib/sse'
 import { useAuthContext } from '@/context/AuthContext'
 import { CheckCircle, Cpu, ShieldAlert, Search, Database, PenTool, ClipboardCheck, Activity, Loader2, Zap } from 'lucide-react'
@@ -9,6 +9,7 @@ import AgentPipeline from './AgentPipeline'
 export default function AgentFeed({ sessionId, isCompleted, onCompleted, onPlanningDone }: { sessionId: string, isCompleted?: boolean, onCompleted: (id: string) => void, onPlanningDone?: () => void }) {
   const [messages, setMessages] = useState<any[]>([])
   const [activeAgent, setActiveAgent] = useState<string | undefined>()
+  const scrollRef = useRef<HTMLDivElement>(null)
   const { token } = useAuthContext()
 
   useEffect(() => {
@@ -42,6 +43,12 @@ export default function AgentFeed({ sessionId, isCompleted, onCompleted, onPlann
       if (controller) controller.abort()
     }
   }, [sessionId, token, onCompleted])
+
+  useEffect(() => {
+    if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [messages])
 
   const getAgentIcon = (agent: string) => {
     switch (agent) {
@@ -92,7 +99,7 @@ export default function AgentFeed({ sessionId, isCompleted, onCompleted, onPlann
         </div>
       </div>
 
-      <FuturisticCard glowColor="#00d4ff" className="flex-1 overflow-hidden h-[400px] lg:h-[calc(100vh-400px)]">
+      <FuturisticCard glowColor="#00d4ff" className="flex-1 overflow-hidden min-h-[500px] lg:h-[calc(100vh-220px)]">
         <div className="h-full flex flex-col p-4">
             {/* Neural Pipeline Visualization */}
             <div className="mb-8 border-b border-white/5 pb-8 relative overflow-hidden">
@@ -110,7 +117,7 @@ export default function AgentFeed({ sessionId, isCompleted, onCompleted, onPlann
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-6 pr-4 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto space-y-6 pr-4 custom-scrollbar" ref={scrollRef}>
                 {messages.length === 0 && !isCompleted && (
                     <div className="flex flex-col items-center justify-center h-48 space-y-4">
                         <Loader2 size={32} className="text-[#00d4ff] animate-spin" />

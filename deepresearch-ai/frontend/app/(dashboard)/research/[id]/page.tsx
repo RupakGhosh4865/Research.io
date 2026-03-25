@@ -32,7 +32,7 @@ export default function ResearchViewPage({ params }: { params: { id: string } })
   }, [params.id])
 
   return (
-    <div className="h-full flex flex-col p-4 sm:p-6 lg:p-8 overflow-y-auto lg:overflow-hidden">
+    <div className="min-h-full flex flex-col p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="font-syne text-2xl font-bold">Research Session</h1>
         <div className="bg-[#1A1F2E] px-3 py-1 rounded-full text-xs text-gray-400 border border-[#ffffff10]">
@@ -49,8 +49,8 @@ export default function ResearchViewPage({ params }: { params: { id: string } })
         />
       )}
 
-      <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
-        <div className="w-full lg:w-[45%] h-auto lg:h-full flex flex-col relative z-20">
+      <div className="flex-1 flex flex-col lg:flex-row gap-6">
+        <div className="w-full lg:w-[45%] flex flex-col relative z-20 min-h-[500px] lg:min-h-0">
           <AgentFeed
             sessionId={params.id}
             isCompleted={!!reportId}
@@ -58,7 +58,7 @@ export default function ResearchViewPage({ params }: { params: { id: string } })
             onPlanningDone={() => setIsPlanApproved(false)}
           />
         </div>
-        <div className="w-full lg:flex-1 h-auto lg:h-full flex flex-col min-h-[500px]">
+        <div className="w-full lg:flex-1 flex flex-col min-h-[500px] lg:min-h-0">
           <ReportViewer reportId={reportId} />
         </div>
       </div>
